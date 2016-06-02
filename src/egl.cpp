@@ -27,19 +27,18 @@
 
 #include <iostream>
 
-// EGL 1.0 functions
-struct EGLDisplayImpl
+struct EGLSDisplayImpl
 {
     bool initialized = false;
 };
 
-struct EGLContextImpl
+struct EGLSContextImpl
 {
     EGLint configId = 0;
 
 };
 
-struct EGLThreadState
+struct EGLSThreadState
 {
     EGLint error = EGL_SUCCESS;
     EGLDisplay display = 0;
@@ -49,21 +48,44 @@ struct EGLThreadState
     EGLSurface readSurface = 0;
 };
 
-static EGLThreadState *getThreadState()
+struct EGLSConfig
 {
-    __thread static EGLThreadState state;
+    unsigned char redBufferSize;
+    unsigned char blueBufferSize;
+    unsigned char greenBufferSize;
+    unsigned char alphaBufferSize;
+
+    unsigned char stencilBufferSize;
+    unsigned char depthBufferSize;
+    unsigned char sampleBuffers;
+    unsigned char samples;
+};
+
+EGLSDisplayImpl egls_global_display;
+
+EGLSConfig egls_global_config = {
+    .redBufferSize = 8,
+    .blueBufferSize = 8,
+    .greenBufferSize = 8,
+    .alphaBufferSize = 8,
+
+    .stencilBufferSize = 8,
+    .depthBufferSize = 24,
+
+    .sampleBuffers = 0,
+    .samples = 0,
+};
+
+static EGLSThreadState *egls_getThreadState()
+{
+    __thread static EGLSThreadState state;
     return &state;
 }
 
-static EGLDisplayImpl *getDefaultDisplay()
-{
-    __thread static EGLDisplayImpl global;
-    return &global;
-}
 
 #define ABORT_ON_BAD_DISPLAY_WITH(returnOnFail)       \
-    if (dpy != getDefaultDisplay()) {                 \
-        threadState->error = EGL_BAD_DISPLAY;    \
+    if (!dpy || dpy != &egls_global_display) {               \
+        threadState->error = EGL_BAD_DISPLAY;         \
         return returnOnFail;                          \
     }
 
@@ -74,7 +96,7 @@ static EGLDisplayImpl *getDefaultDisplay()
     }
 
 #define GET_THREAD_STATE_AND_ASSUME_SUCCESS             \
-    EGLThreadState *threadState = getThreadState();     \
+    EGLSThreadState *threadState = egls_getThreadState();     \
     threadState->error = EGL_SUCCESS
 
 
@@ -84,7 +106,7 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id)
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
     if (display_id == EGL_DEFAULT_DISPLAY)
-        return getDefaultDisplay();
+        return &egls_global_display;
     return EGL_NO_DISPLAY;
 }
 
@@ -93,7 +115,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLin
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
     ABORT_ON_BAD_DISPLAY_WITH(false);
-    getDefaultDisplay()->initialized = true;
+    ((EGLSDisplayImpl *) dpy)->initialized = true;
     *major = 1;
     *minor = 0;
     return true;
@@ -122,7 +144,16 @@ EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay dpy, const EGLint *attr
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
     ABORT_ON_BAD_DISPLAY_WITH(false);
-    std::cerr << __PRETTY_FUNCTION__ << ": not implemented!" << std::endl;
+
+    ABORT_WITH_BAD_PARAM_IF_NULL(num_config, false);
+
+    if (configs == 0) {
+        *num_config = 1;
+    } else {
+        ABORT_WITH_BAD_PARAM_IF_NULL(configs, false);
+        configs[0] = &egls_global_config;
+    }
+
     return false;
 }
 
@@ -194,8 +225,54 @@ EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigAttrib(EGLDisplay dpy, EGLConfig confi
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
     ABORT_ON_BAD_DISPLAY_WITH(false);
-    std::cerr << __PRETTY_FUNCTION__ << ": not implemented!" << std::endl;
-    return false;
+    ABORT_WITH_BAD_PARAM_IF_NULL(value, false);
+
+    EGLSConfig *c = (EGLSConfig *) config;
+
+    switch (attribute) {
+
+    case EGL_RED_SIZE:               *value = c->redBufferSize; break;
+    case EGL_GREEN_SIZE:             *value = c->greenBufferSize; break;
+    case EGL_BLUE_SIZE:              *value = c->blueBufferSize; break;
+    case EGL_ALPHA_SIZE:             *value = c->alphaBufferSize; break;
+
+    case EGL_STENCIL_SIZE:           *value = c->stencilBufferSize; break;
+    case EGL_DEPTH_SIZE:             *value = c->depthBufferSize; break;
+
+    case EGL_ALPHA_MASK_SIZE:        *value = 0; break;
+    case EGL_BUFFER_SIZE:            *value = c->redBufferSize + c->greenBufferSize + c->blueBufferSize + c->alphaBufferSize; break;
+
+    case EGL_SAMPLE_BUFFERS:         *value = 0; break;
+    case EGL_SAMPLES:                *value = 0; break;
+
+    case EGL_BIND_TO_TEXTURE_RGB:    *value = 0; break;
+    case EGL_BIND_TO_TEXTURE_RGBA:   *value = 0; break;
+    case EGL_COLOR_BUFFER_TYPE:      *value = 0; break;
+    case EGL_CONFIG_CAVEAT:          *value = 0; break;
+    case EGL_CONFIG_ID:              *value = 0; break;
+    case EGL_CONFORMANT:             *value = 0; break;
+    case EGL_LEVEL:                  *value = 0; break;
+    case EGL_LUMINANCE_SIZE:         *value = 0; break;
+    case EGL_MAX_PBUFFER_WIDTH:      *value = 0; break;
+    case EGL_MAX_PBUFFER_HEIGHT:     *value = 0; break;
+    case EGL_MAX_PBUFFER_PIXELS:     *value = 0; break;
+    case EGL_MAX_SWAP_INTERVAL:      *value = 1; break;
+    case EGL_MIN_SWAP_INTERVAL:      *value = 1; break;
+    case EGL_NATIVE_RENDERABLE:      *value = 0; break;
+    case EGL_NATIVE_VISUAL_ID:       *value = 0; break;
+    case EGL_NATIVE_VISUAL_TYPE:     *value = 0; break;
+    case EGL_RENDERABLE_TYPE:        *value = 0; break;
+    case EGL_SURFACE_TYPE:           *value = EGL_WINDOW_BIT; break;
+    case EGL_TRANSPARENT_TYPE:       *value = 0; break;
+    case EGL_TRANSPARENT_RED_VALUE:  *value = 0; break;
+    case EGL_TRANSPARENT_GREEN_VALUE:*value = 0; break;
+    case EGL_TRANSPARENT_BLUE_VALUE: *value = 0; break;
+    default:
+        threadState->error = EGL_BAD_ATTRIBUTE;
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -258,7 +335,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx, EG
     ABORT_WITH_BAD_PARAM_IF_NULL(ctx, false);
     ABORT_WITH_BAD_PARAM_IF_NULL(value, false);
 
-    EGLContextImpl *context = (EGLContextImpl *) ctx;
+    EGLSContextImpl *context = (EGLSContextImpl *) ctx;
     switch (attribute) {
         case EGL_CONFIG_ID:                 *value = context->configId;     return true;
         case EGL_CONTEXT_CLIENT_TYPE:       *value = EGL_OPENGL_ES_API;     return true;
