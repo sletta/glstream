@@ -23,29 +23,13 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <EGL/egl.h>
+#include "egls.h"
 
 #include <iostream>
 
 struct EGLSDisplayImpl
 {
     bool initialized = false;
-};
-
-struct EGLSContextImpl
-{
-    EGLint configId = 0;
-
-};
-
-struct EGLSThreadState
-{
-    EGLint error = EGL_SUCCESS;
-    EGLDisplay display = 0;
-    EGLContext context = 0;
-
-    EGLSurface drawSurface = 0;
-    EGLSurface readSurface = 0;
 };
 
 struct EGLSConfig
@@ -76,7 +60,7 @@ EGLSConfig egls_global_config = {
     .samples = 0,
 };
 
-static EGLSThreadState *egls_getThreadState()
+EGLSThreadState *egls_getThreadState()
 {
     __thread static EGLSThreadState state;
     return &state;
@@ -84,23 +68,23 @@ static EGLSThreadState *egls_getThreadState()
 
 
 #define ABORT_ON_BAD_DISPLAY_WITH(returnOnFail)       \
-    if (!dpy || dpy != &egls_global_display) {               \
+    if (!dpy                                          \
+        || dpy != &egls_global_display                \
+        || !egls_global_display.initialized) {        \
+        printf("call failed...\n");                   \
         threadState->error = EGL_BAD_DISPLAY;         \
         return returnOnFail;                          \
     }
 
 #define ABORT_WITH_BAD_PARAM_IF_NULL(param, returnOnFail)    \
     if (!param) {                                            \
-        threadState->error = EGL_BAD_PARAMETER;         \
+        threadState->error = EGL_BAD_PARAMETER;              \
         return returnOnFail;                                 \
     }
 
-#define GET_THREAD_STATE_AND_ASSUME_SUCCESS             \
-    EGLSThreadState *threadState = egls_getThreadState();     \
+#define GET_THREAD_STATE_AND_ASSUME_SUCCESS                  \
+    EGLSThreadState *threadState = egls_getThreadState();    \
     threadState->error = EGL_SUCCESS
-
-
-
 
 EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id)
 {
@@ -114,7 +98,10 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id)
 EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
-    ABORT_ON_BAD_DISPLAY_WITH(false);
+    if (!dpy || dpy != &egls_global_display) {
+        threadState->error = EGL_BAD_DISPLAY;
+        return false;
+    }
     ((EGLSDisplayImpl *) dpy)->initialized = true;
     *major = 1;
     *minor = 0;
@@ -171,8 +158,11 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
     ABORT_ON_BAD_DISPLAY_WITH(nullptr);
-    std::cerr << __PRETTY_FUNCTION__ << ": not implemented!" << std::endl;
-    return nullptr;
+    // ### ignoring attrib_list for now..
+    EGLSContextImpl *context = new EGLSContextImpl();
+    context->config = config;
+    context->display = dpy;
+    return context;
 }
 
 
@@ -198,8 +188,10 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
     ABORT_ON_BAD_DISPLAY_WITH(nullptr);
-    std::cerr << __PRETTY_FUNCTION__ << ": not implemented!" << std::endl;
-    return nullptr;
+    EGLSWindowSurface *surface = new EGLSWindowSurface();
+    surface->display = dpy;
+    surface->config = config;
+    return surface;
 }
 
 
@@ -207,8 +199,9 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
     ABORT_ON_BAD_DISPLAY_WITH(false);
-    std::cerr << __PRETTY_FUNCTION__ << ": not implemented!" << std::endl;
-    return false;
+    ABORT_WITH_BAD_PARAM_IF_NULL(ctx, false);
+    delete (EGLSContextImpl *) ctx;
+    return true;
 }
 
 
@@ -216,8 +209,8 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay dpy, EGLSurface surfa
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
     ABORT_ON_BAD_DISPLAY_WITH(false);
-    std::cerr << __PRETTY_FUNCTION__ << ": not implemented!" << std::endl;
-    return false;
+    delete (EGLSWindowSurface *) surface;
+    return true;
 }
 
 
@@ -288,7 +281,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigs(EGLDisplay dpy, EGLConfig *configs, 
 EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay (void)
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
-    return threadState->display;
+    return threadState->context->display;
 }
 
 
@@ -306,8 +299,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface (EGLint mode)
 
 EGLAPI EGLint EGLAPIENTRY eglGetError (void)
 {
-    GET_THREAD_STATE_AND_ASSUME_SUCCESS;
-    return threadState->error;
+    return egls_getThreadState()->error;
 }
 
 EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress (const char *procname)
@@ -323,7 +315,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EG
     ABORT_ON_BAD_DISPLAY_WITH(false);
     threadState->drawSurface = draw;
     threadState->readSurface = read;
-    threadState->context = ctx;
+    threadState->context = (EGLSContextImpl *) ctx;
     return true;
 }
 
@@ -337,7 +329,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx, EG
 
     EGLSContextImpl *context = (EGLSContextImpl *) ctx;
     switch (attribute) {
-        case EGL_CONFIG_ID:                 *value = context->configId;     return true;
+        case EGL_CONFIG_ID:                 *value = 0;                     return true;
         case EGL_CONTEXT_CLIENT_TYPE:       *value = EGL_OPENGL_ES_API;     return true;
         case EGL_CONTEXT_CLIENT_VERSION:    *value = EGL_OPENGL_ES2_BIT;    return true;
         case EGL_RENDER_BUFFER:             *value = EGL_BACK_BUFFER;       return true;

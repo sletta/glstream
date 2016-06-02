@@ -21,6 +21,7 @@ LIB_VERSION      := 0.0.1
 EGL_LIB_BASENAME := EGL$(LIB_POSTFIX)
 EGL_LIB_NAME     := lib$(EGL_LIB_BASENAME).$(LIB_SUFFIX).$(LIB_VERSION)
 
+HEADERS          := src/egls.h
 
 all: $(EGL_LIB_NAME) examples
 
@@ -31,7 +32,7 @@ $(EGL_LIB_NAME): egl.o
 	ln -sf $(EGL_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 3, $(subst ., ,$(EGL_LIB_NAME))))
 	ln -sf $(EGL_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 2, $(subst ., ,$(EGL_LIB_NAME))))
 
-egl.o: src/egl.cpp
+egl.o: src/egl.cpp $(HEADERS)
 	$(CC) -c $(CXXFLAGS) $(INCLUDES) src/egl.cpp
 
 
