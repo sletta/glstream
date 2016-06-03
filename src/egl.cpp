@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2015, Gunnar Sletta <gunnar@sletta.org>
+    Copyright (c) 2016, Gunnar Sletta <gunnar@sletta.org>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
