@@ -12,7 +12,7 @@ endif
 
 SPACE 			 :=
 SPACE            +=
-CXXFLAGS         := -g -std=c++11 -stdlib=libc++
+CXXFLAGS         := -g -std=c++11 -fPIC
 INCLUDES         := -Ikhronos_registry -Isrc/common
 
 LIB_POSTFIX      := -stream
