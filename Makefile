@@ -10,40 +10,74 @@ else
 	LIB_SUFFIX  := so
 endif
 
-SPACE 			 :=
-SPACE            +=
-CXXFLAGS         := -g -std=c++11 -fPIC
-INCLUDES         := -Ikhronos_registry -Isrc/common
+SPACE 			    :=
+SPACE               +=
 
-LIB_POSTFIX      := -stream
-LIB_VERSION      := 0.0.1
+# GLSTREAM_LOGGING means: 1=warn, 2=info/warn, 3=debug/info/warn
+DEFINES             := -DGLSTREAM_LOGGING=3
+CXXFLAGS            := -g -std=c++11 -fPIC $(DEFINES)
+INCLUDES            := -Ikhronos_registry -Isrc
 
-EGL_LIB_BASENAME := EGL$(LIB_POSTFIX)
-EGL_LIB_NAME     := lib$(EGL_LIB_BASENAME).$(LIB_SUFFIX).$(LIB_VERSION)
+LIB_VERSION         := 0.0.1
 
-HEADERS          := src/egls.h
+CLIENT_LIB_BASENAME := glstream
+CLIENT_LIB_NAME     := lib$(CLIENT_LIB_BASENAME).$(LIB_SUFFIX).$(LIB_VERSION)
 
-all: $(EGL_LIB_NAME) examples
+SERVER_LIB_BASENAME := glstreamserver
+SERVER_LIB_NAME     := lib$(SERVER_LIB_BASENAME).$(LIB_SUFFIX).$(LIB_VERSION)
+
+HEADERS             := src/egls.h \
+					   src/logging.h \
+					   src/server.h \
+					   src/transport.h \
 
 
-$(EGL_LIB_NAME): egl.o
-	$(CC) -shared egl.o -o $(EGL_LIB_NAME)
-	ln -sf $(EGL_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 4, $(subst ., ,$(EGL_LIB_NAME))))
-	ln -sf $(EGL_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 3, $(subst ., ,$(EGL_LIB_NAME))))
-	ln -sf $(EGL_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 2, $(subst ., ,$(EGL_LIB_NAME))))
+# Toplevel build
+all: $(CLIENT_LIB_NAME) $(SERVER_LIB_NAME) simpleegl exampleserver
 
+
+
+# Object files..
 egl.o: src/egl.cpp $(HEADERS)
 	$(CC) -c $(CXXFLAGS) $(INCLUDES) src/egl.cpp
 
+transport.o: src/transport_uds.cpp $(HEADERS)
+	$(CC) -c $(CXXFLAGS) $(INCLUDES) src/transport_uds.cpp -o transport.o
 
-examples: examples/simpleegl.cpp $(EGL_LIB_NAME)
-	$(CC) $(CXXFLAGS) $(INCLUDES) examples/simpleegl.cpp -o simpleegl -L. -l$(EGL_LIB_BASENAME)
+server.o: src/server.cpp $(HEADERS)
+	$(CC) -c $(CXXFLAGS) $(INCLUDES) src/server.cpp -o server.o
+
+
+
+# The libraries we're generating..
+$(SERVER_LIB_NAME): transport.o server.o
+	$(CC) -shared transport.o server.o -o $(SERVER_LIB_NAME)
+	ln -sf $(SERVER_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 4, $(subst ., ,$(SERVER_LIB_NAME))))
+	ln -sf $(SERVER_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 3, $(subst ., ,$(SERVER_LIB_NAME))))
+	ln -sf $(SERVER_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 2, $(subst ., ,$(SERVER_LIB_NAME))))
+
+
+$(CLIENT_LIB_NAME): egl.o transport.o
+	$(CC) -shared egl.o transport.o -o $(CLIENT_LIB_NAME)
+	ln -sf $(CLIENT_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 4, $(subst ., ,$(CLIENT_LIB_NAME))))
+	ln -sf $(CLIENT_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 3, $(subst ., ,$(CLIENT_LIB_NAME))))
+	ln -sf $(CLIENT_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 2, $(subst ., ,$(CLIENT_LIB_NAME))))
+
+
+
+# Examples
+simpleegl: examples/simpleegl.cpp $(CLIENT_LIB_NAME) $(SERVER_LIB_NAME)
+	$(CC) $(CXXFLAGS) $(INCLUDES) examples/simpleegl.cpp -o simpleegl -L. -l$(CLIENT_LIB_BASENAME)
+
+exampleserver: examples/exampleserver.cpp $(CLIENT_LIB_NAME) $(SERVER_LIB_NAME)
+	$(CC) $(CXXFLAGS) $(INCLUDES) examples/exampleserver.cpp -o exampleserver -L. -l$(SERVER_LIB_BASENAME)
 
 
 clean:
-	rm *.o
-	rm $(EGL_LIB_NAME)*
-	rm simpleegl
+	rm -f *.o
+	rm -f lib*
+	rm -f simpleegl
+	rm -rf exampleserver
 
 
 
