@@ -53,14 +53,14 @@ inline std::string log_timestring()
 
 #  if GLSTREAM_LOGGING >= 3
 #     define logd(format, ...) { fprintf(stderr, "D [%s]: " format, log_timestring().c_str(), __VA_ARGS__); fflush(stderr); }
-#     define logde(format) { fprintf(stderr, format); fflush(stderr); }
+#     define logde(format) { fprintf(stderr, "D [%s]: " format, log_timestring().c_str()); fflush(stderr); }
 #  endif
 #  if GLSTREAM_LOGGING >= 2
 #     define logi(format, ...) { fprintf(stderr, "I [%s]: " format, log_timestring().c_str(), __VA_ARGS__); fflush(stderr); }
-#     define logie(format) { fprintf(stderr, format); fflush(stderr); }
+#     define logie(format) { fprintf(stderr, "I [%s]: " format, log_timestring().c_str()); fflush(stderr); }
 #  endif
 #  if GLSTREAM_LOGGING >= 1
 #     define logw(format, ...) { fprintf(stderr, "W [%s]: " format, log_timestring().c_str(), __VA_ARGS__); fflush(stderr); }
-#     define logwe(format) { fprintf(stderr, format); fflush(stderr); }
+#     define logwe(format) { fprintf(stderr, "W [%s]: " format, log_timestring().c_str()); fflush(stderr); }
 #  endif
 #endif

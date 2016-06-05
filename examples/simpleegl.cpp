@@ -8,6 +8,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <string>
+#include <chrono>
+
+#include "logging.h"
+
 int main(int argc, char **argv)
 {
     EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -66,14 +71,17 @@ int main(int argc, char **argv)
     printf(" - current read surface: %p\n", eglGetCurrentSurface(EGL_READ));
     printf(" - current draw surface: %p\n", eglGetCurrentSurface(EGL_DRAW));
 
-    sleep(2);
-
     int frame = 0;
-    while (frame < 100) {
+    while (frame < 10000) {
         int c = ++frame % 2;
+
+        logde(" -- start frame\n");
         glClearColor(c, 0, 1-c, 1);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        logde(" -- swapping\n");
         ok = eglSwapBuffers(eglDisplay, eglSurface);
+        logde(" -- done swapping\n");
 
         assert(ok);
     }

@@ -118,8 +118,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 
     EGLSDisplayImpl *display = (EGLSDisplayImpl *) dpy;
     threadState->context->cmds.swapBuffers();
-    display->send(threadState->context->cmds);
-    threadState->context->cmds.reset();
+    display->flush(threadState->context);
 
     return true;
 }
@@ -399,10 +398,19 @@ bool EGLSDisplayImpl::connectToServer()
     return m_transport != 0;
 }
 
-bool EGLSDisplayImpl::send(const CommandBuffer &buffer)
+bool EGLSDisplayImpl::flush(EGLSContextImpl *context)
 {
     m_transportMutex.lock();
-    bool ok = m_transport->write(buffer.buffer(), buffer.size());
+    CommandBuffer &cmds(context->cmds);
+    bool ok = m_transport->write(cmds.buffer(), cmds.size());
+    cmds.reset();
+    if (!ok)
+        return false;
+    logde(" - waiting for server to accept our buffer\n");
+    m_transport->read(cmds.writableBuffer());
+    logd(" - server consumed buffer, returned %d bytes\n", cmds.size());
+    cmds.reset();
+
     m_transportMutex.unlock();
     return ok;
 }

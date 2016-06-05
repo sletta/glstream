@@ -45,6 +45,8 @@ public:
 
         CMD_SwapBuffers,
 
+        CMD_Ack,
+
         CMD_LastCommand
     };
 
@@ -76,6 +78,9 @@ public:
 
     // EGL Commands
     void swapBuffers();
+
+    // Other commands
+    void ack();
 
 private:
     void ensureCapacityForCommand(int toAdd) {
@@ -116,4 +121,10 @@ inline void CommandBuffer::swapBuffers()
 {
     ensureCapacityForCommand(0);
     push(CMD_SwapBuffers);
+}
+
+inline void CommandBuffer::ack()
+{
+    ensureCapacityForCommand(0);
+    push(CMD_Ack);
 }

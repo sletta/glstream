@@ -142,7 +142,7 @@ bool UnixDomainSocket::read(std::vector<unsigned char> *buffer)
         return false;
     }
 
-    logd("Transport: read pending=%d, bufferSize=%d\n", size, (int) buffer->size());
+    // logd("Transport: read pending=%d, bufferSize=%d\n", size, (int) buffer->size());
     if (buffer->size() < size)
         buffer->resize(size);
 
@@ -170,7 +170,7 @@ bool UnixDomainSocket::write(const std::vector<unsigned char> &buffer, int size)
         return false;
     }
 
-    logd("Transport: wrote %d bytes...\n", size);
+    // logd("Transport: wrote %d bytes...\n", size);
 
     return true;
 }

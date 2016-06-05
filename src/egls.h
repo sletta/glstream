@@ -63,7 +63,7 @@ public:
 
     bool connectToServer();
 
-    bool send(const CommandBuffer &cmds);
+    bool flush(EGLSContextImpl *context);
 
 private:
 

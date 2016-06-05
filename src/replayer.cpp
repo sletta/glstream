@@ -6,6 +6,10 @@
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 
+Replayer::Replayer()
+{
+}
+
 void Replayer::process(const CommandBuffer &cmd)
 {
     while (!cmd.atEnd()) {

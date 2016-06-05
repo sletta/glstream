@@ -30,6 +30,8 @@
 class Replayer
 {
 public:
+    Replayer();
+
     virtual ~Replayer() { }
 
     void process(const CommandBuffer &buffer);
