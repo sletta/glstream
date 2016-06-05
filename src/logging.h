@@ -27,6 +27,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
+#include <chrono>
 
 #ifndef GLSTREAM_LOGGING
 #define logw(format, ...)
@@ -36,16 +38,29 @@
 #define logd(format, ...)
 #define logde(format)
 #else
+
+inline std::string log_timestring()
+{
+    auto time = std::chrono::system_clock::now().time_since_epoch();
+    unsigned s = std::chrono::duration_cast<std::chrono::seconds>(time).count() % 1000;
+    unsigned ms = std::chrono::duration_cast<std::chrono::milliseconds>(time).count() % 1000;
+    unsigned us = std::chrono::duration_cast<std::chrono::microseconds>(time).count() % 1000;
+    // ssss:mmm.uuu
+    char buffer[16];
+    snprintf(buffer, sizeof(buffer), "%4d:%03d.%03d", s, ms, us);
+    return buffer;
+}
+
 #  if GLSTREAM_LOGGING >= 3
-#     define logd(format, ...) { fprintf(stderr, format, __VA_ARGS__); fflush(stderr); }
+#     define logd(format, ...) { fprintf(stderr, "D [%s]: " format, log_timestring().c_str(), __VA_ARGS__); fflush(stderr); }
 #     define logde(format) { fprintf(stderr, format); fflush(stderr); }
 #  endif
 #  if GLSTREAM_LOGGING >= 2
-#     define logi(format, ...) { fprintf(stderr, format, __VA_ARGS__); fflush(stderr); }
+#     define logi(format, ...) { fprintf(stderr, "I [%s]: " format, log_timestring().c_str(), __VA_ARGS__); fflush(stderr); }
 #     define logie(format) { fprintf(stderr, format); fflush(stderr); }
 #  endif
 #  if GLSTREAM_LOGGING >= 1
-#     define logw(format, ...) { fprintf(stderr, format, __VA_ARGS__); fflush(stderr); }
+#     define logw(format, ...) { fprintf(stderr, "W [%s]: " format, log_timestring().c_str(), __VA_ARGS__); fflush(stderr); }
 #     define logwe(format) { fprintf(stderr, format); fflush(stderr); }
 #  endif
 #endif
