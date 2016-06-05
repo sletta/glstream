@@ -35,7 +35,7 @@ class Server
 public:
     Server();
 
-    bool openConnection(const char *address);
+    Transport *openConnection(const char *address);
 
 private:
     std::mutex m_connectionMutex;

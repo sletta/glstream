@@ -23,19 +23,30 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
+#include "egls.h"
+#include "logging.h"
 
-#include <vector>
 
-class Transport
+extern "C" GL_APICALL void GL_APIENTRY glClear (GLbitfield mask)
 {
-public:
-    virtual ~Transport() { }
+    EGLSThreadState *threadState = egls_getThreadState();
+    if (!threadState->context) {
+        logwe("no current context...");
+        return;
+    }
 
-    static Transport *createServer(const char *address);
-    static Transport *createClient(const char *address);
+    threadState->context->cmds.glClear(mask);
 
-    virtual bool read(std::vector<unsigned char> *buffer) = 0;
-    virtual bool write(const std::vector<unsigned char> &buffer, int size) = 0;
-};
+}
 
+
+extern "C" GL_APICALL void GL_APIENTRY glClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
+{
+    EGLSThreadState *threadState = egls_getThreadState();
+    if (!threadState->context) {
+        logwe("no current context...");
+        return;
+    }
+
+    threadState->context->cmds.glClearColor(r, g, b, a);
+}

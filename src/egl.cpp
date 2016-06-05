@@ -115,7 +115,11 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 {
     GET_THREAD_STATE_AND_ASSUME_SUCCESS;
     ABORT_ON_BAD_DISPLAY_WITH(false);
-    std::cerr << __PRETTY_FUNCTION__ << ": not implemented!" << std::endl;
+
+    EGLSDisplayImpl *display = (EGLSDisplayImpl *) dpy;
+    display->send(threadState->context->cmds);
+    threadState->context->cmds.reset();
+
     return false;
 }
 
@@ -389,9 +393,16 @@ bool EGLSDisplayImpl::connectToServer()
     }
 
     logi("EGLDisplay: making connection to server at '%s'\n", address);
-    m_transport = Transport::connect(address);
-
+    m_transport = Transport::createClient(address);
 
     return m_transport != 0;
+}
+
+bool EGLSDisplayImpl::send(const CommandBuffer &buffer)
+{
+    m_transportMutex.lock();
+    bool ok = m_transport->write(buffer.buffer(), buffer.size());
+    m_transportMutex.unlock();
+    return ok;
 }
 

@@ -26,7 +26,8 @@ CLIENT_LIB_NAME     := lib$(CLIENT_LIB_BASENAME).$(LIB_SUFFIX).$(LIB_VERSION)
 SERVER_LIB_BASENAME := glstreamserver
 SERVER_LIB_NAME     := lib$(SERVER_LIB_BASENAME).$(LIB_SUFFIX).$(LIB_VERSION)
 
-HEADERS             := src/egls.h \
+HEADERS             := src/commandbuffer.h \
+					   src/egls.h \
 					   src/logging.h \
 					   src/server.h \
 					   src/transport.h \
@@ -40,6 +41,9 @@ all: $(CLIENT_LIB_NAME) $(SERVER_LIB_NAME) simpleegl exampleserver
 # Object files..
 egl.o: src/egl.cpp $(HEADERS)
 	$(CC) -c $(CXXFLAGS) $(INCLUDES) src/egl.cpp
+
+gles2.o: src/gles2.cpp $(HEADERS)
+	$(CC) -c $(CXXFLAGS) $(INCLUDES) src/gles2.cpp
 
 transport.o: src/transport_uds.cpp $(HEADERS)
 	$(CC) -c $(CXXFLAGS) $(INCLUDES) src/transport_uds.cpp -o transport.o
@@ -56,9 +60,8 @@ $(SERVER_LIB_NAME): transport.o server.o
 	ln -sf $(SERVER_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 3, $(subst ., ,$(SERVER_LIB_NAME))))
 	ln -sf $(SERVER_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 2, $(subst ., ,$(SERVER_LIB_NAME))))
 
-
-$(CLIENT_LIB_NAME): egl.o transport.o
-	$(CC) -shared egl.o transport.o -o $(CLIENT_LIB_NAME)
+$(CLIENT_LIB_NAME): egl.o gles2.o transport.o
+	$(CC) -shared egl.o gles2.o transport.o -o $(CLIENT_LIB_NAME)
 	ln -sf $(CLIENT_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 4, $(subst ., ,$(CLIENT_LIB_NAME))))
 	ln -sf $(CLIENT_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 3, $(subst ., ,$(CLIENT_LIB_NAME))))
 	ln -sf $(CLIENT_LIB_NAME) $(subst $(SPACE),.,$(wordlist 1, 2, $(subst ., ,$(CLIENT_LIB_NAME))))

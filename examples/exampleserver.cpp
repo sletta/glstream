@@ -24,17 +24,57 @@
 */
 
 #include "server.h"
+#include "transport.h"
+#include "commandbuffer.h"
+
+
 
 #include <unistd.h>
 
 int main(int argc, char **argv)
 {
     Server server;
-    if (server.openConnection(".glstream.socket")) {
-        printf("connection was opened!!\n");
-    } else {
-        printf("connection failed!!\n");
+    Transport *transport = server.openConnection(".glstream.socket");
+
+    if (!transport) {
+        printf("failed to set up connections...\n");
+        return 0;
     }
+
+    CommandBuffer cmds;
+    if (!transport->read(cmds.writeBuffer())) {
+        printf("failed to read a blob...\n");
+        return 0;
+    }
+
+    int counter = 0;
+    for (unsigned char c : cmds.buffer()) {
+        printf("%3d:%2x ", c, c);
+        if ((++counter) % 4 == 0)
+            printf("\n");
+    }
+
+    while (!cmds.atEnd()) {
+        CommandBuffer::Command cmd = cmds.pop<CommandBuffer::Command>();
+
+        switch (cmd) {
+        case CommandBuffer::CMD_glClear: {
+            GLbitfield mask = cmds.pop<GLbitfield>();
+            printf(" - glClear(%x)\n", mask);
+            break; }
+        case CommandBuffer::CMD_glClearColor: {
+            float r = cmds.pop<GLfloat>();
+            float g = cmds.pop<GLfloat>();
+            float b = cmds.pop<GLfloat>();
+            float a = cmds.pop<GLfloat>();
+            printf(" - glClearColor(%f, %f, %f, %f)\n", r, g, b, a);
+            break; }
+        default:
+            printf(" - unknown: %x / %d\n", cmd, cmd);
+            break;
+        }
+    }
+
 
     sleep(1000);
 

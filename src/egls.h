@@ -27,12 +27,18 @@
 
 #include <EGL/egl.h>
 
+#include "commandbuffer.h"
+
+#include <mutex>
+
 class Transport;
 
 struct EGLSContextImpl
 {
     EGLConfig config = 0;
     EGLDisplay display = 0;
+
+    CommandBuffer cmds;
 };
 
 struct EGLSWindowSurface
@@ -45,7 +51,6 @@ struct EGLSThreadState
 {
     EGLint error = EGL_SUCCESS;
     EGLSContextImpl *context = 0;
-
     EGLSurface drawSurface = 0;
     EGLSurface readSurface = 0;
 };
@@ -58,8 +63,11 @@ public:
 
     bool connectToServer();
 
+    bool send(const CommandBuffer &cmds);
+
 private:
 
+    std::mutex m_transportMutex;
     Transport *m_transport = 0;
     bool m_initialized = false;
 };

@@ -32,17 +32,18 @@ Server::Server()
 
 }
 
-bool Server::openConnection(const char *address)
+Transport *Server::openConnection(const char *address)
 {
     logi("Server: opening connection to: %s\n", address);
 
-    Transport *transport = Transport::awaitConnection(address);
+    Transport *transport = Transport::createServer(address);
     if (transport) {
         m_connectionMutex.lock();
         m_connections.push_back(transport);
         m_connectionMutex.unlock();
-        return true;
+        return transport;
     }
 
-    return false;
+    return nullptr;
 }
+

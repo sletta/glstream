@@ -33,6 +33,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include <memory>
 
@@ -52,6 +53,9 @@ public:
         return addr;
     }
 
+    bool read(std::vector<unsigned char> *buffer);
+    bool write(const std::vector<unsigned char> &buffer, int size);
+
     int socket() const { return m_socket; }
 
     int m_socket = 0;
@@ -62,9 +66,11 @@ public:
 class ServerSocket : public UnixDomainSocket
 {
 public:
+    ServerSocket();
+
     bool connect(const char *address);
 
-    int m_readSocket = 0;
+    int m_serverSocket = 0;
 };
 
 
@@ -72,42 +78,39 @@ public:
 class ClientSocket : public UnixDomainSocket
 {
 public:
+    ClientSocket();
+
     bool connect(const char *address);
 };
 
 
 
-Transport *Transport::awaitConnection(const char *address)
+Transport *Transport::createServer(const char *address)
 {
     std::unique_ptr<ServerSocket> server(new ServerSocket());
-    int unlinked = unlink(address);
-    logd("Transport: awaiting connection, address=%s, socket=%d, unlink=%d\n",
-         address,
-         server->m_socket,
-         unlinked);
+    unlink(address);
 
     if (!server->connect(address)) {
-        logw("Transport: server failed to connect, socket=%d, readSocket=%d, address=%s, error=%s\n",
+        logw("Transport: server failed to connect, socket=%d, serverSocket=%d, address=%s, error=%s\n",
              server->m_socket,
-             server->m_readSocket,
+             server->m_serverSocket,
              address,
              strerror(errno));
         return nullptr;
     }
 
-    logi("Transport: connection established with client, address=%s, socket=%d, readSocket=%d\n",
+    logi("Transport: connection established with client, address=%s, socket=%d, serverSocket=%d\n",
          address,
          server->m_socket,
-         server->m_readSocket);
+         server->m_serverSocket);
 
     return server.release();
 }
 
 
-Transport *Transport::connect(const char *address)
+Transport *Transport::createClient(const char *address)
 {
     std::unique_ptr<ClientSocket> client(new ClientSocket());
-    logd("Transport:(%s), using fd=%d\n", address, client->socket());
 
     if (!client->connect(address)) {
         logw("Transport: cient failed to connect, socket=%d, address=%s, error=%s\n",
@@ -128,28 +131,74 @@ Transport *Transport::connect(const char *address)
 
 UnixDomainSocket::UnixDomainSocket()
 {
-    m_socket = ::socket(AF_UNIX, SOCK_STREAM, 0);
+}
+
+bool UnixDomainSocket::read(std::vector<unsigned char> *buffer)
+{
+    int size = 0;
+    if (::read(m_socket, &size, sizeof(int)) != sizeof(int)) {
+        logwe("Transport: failed to read size from socket\n");
+        buffer->resize(0);
+        return false;
+    }
+
+    logd("Transport: read pending=%d, bufferSize=%d\n", size, (int) buffer->size());
+    if (buffer->size() < size)
+        buffer->resize(size);
+
+    int count = ::read(m_socket, buffer->data(), size);
+    if (count != size) {
+        logw("Transport: read failed, read=%d, expected=%d\n", count, size);
+        buffer->resize(0);
+        return false;
+    }
+
+    return true;
+}
+
+bool UnixDomainSocket::write(const std::vector<unsigned char> &buffer, int size)
+{
+    assert(buffer.size() >= size);
+
+    if (::write(m_socket, &size, sizeof(int)) != sizeof(int)) {
+        logwe("Transport: failed to write size to socket\n");
+        return false;
+    }
+
+    if (::write(m_socket, buffer.data(), size) != size) {
+        logwe("Transport: failed to write buffer to socket..\n");
+        return false;
+    }
+
+    logd("Transport: wrote %d bytes...\n", size);
+
+    return true;
 }
 
 
+
+ServerSocket::ServerSocket()
+{
+    m_serverSocket = ::socket(AF_UNIX, SOCK_STREAM, 0);
+}
 
 bool ServerSocket::connect(const char *address)
 {
     sockaddr_un addr = transport_sockaddrForAddress(address);
 
-    if (bind(m_socket, (sockaddr *) &addr, sizeof(addr)) != 0) {
+    if (bind(m_serverSocket, (sockaddr *) &addr, sizeof(addr)) != 0) {
         logde(" - failed to bind..\n");
         return false;
     }
 
-    if (listen(m_socket, 0) != 0) {
+    if (listen(m_serverSocket, 0) != 0) {
         logde(" - failed to listen..\n");
         return false;
     }
 
     logi("Transport: awaiting connection on address=%s, socket=%d\n", address, m_socket);
-    m_readSocket = accept(m_socket, 0, 0);
-    if (m_readSocket <= 0) {
+    m_socket = accept(m_serverSocket, 0, 0);
+    if (m_socket <= 0) {
         logde(" - failed to accept\n");
         return false;
     }
@@ -158,6 +207,11 @@ bool ServerSocket::connect(const char *address)
 }
 
 
+
+ClientSocket::ClientSocket()
+{
+    m_socket = ::socket(AF_UNIX, SOCK_STREAM, 0);
+}
 
 bool ClientSocket::connect(const char *address)
 {

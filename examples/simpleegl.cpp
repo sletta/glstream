@@ -1,4 +1,6 @@
 #include <EGL/egl.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GLES2/gl2.h>
 
 #include <assert.h>
 
@@ -62,6 +64,10 @@ int main(int argc, char **argv)
     printf(" - current display: %p\n", eglGetCurrentDisplay());
     printf(" - current read surface: %p\n", eglGetCurrentSurface(EGL_READ));
     printf(" - current draw surface: %p\n", eglGetCurrentSurface(EGL_DRAW));
+
+    glClearColor(1, 0, 0, 0.5);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ok = eglSwapBuffers(eglDisplay, eglSurface);
 
     return 0;
 }
