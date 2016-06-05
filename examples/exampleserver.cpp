@@ -23,60 +23,97 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "server.h"
 #include "transport.h"
 #include "commandbuffer.h"
-
-
+#include "replayer.h"
 
 #include <unistd.h>
 
+#include <GLFW/glfw3.h>
+
+class Server : public Replayer
+{
+public:
+    Server();
+    ~Server();
+
+    void swap();
+    void run();
+
+    Transport *transport() const { return m_transport; }
+
+private:
+    GLFWwindow *m_window = 0;
+    Transport *m_transport = 0;
+    CommandBuffer m_cmds;
+};
+
+
+
 int main(int argc, char **argv)
 {
-    Server server;
-    Transport *transport = server.openConnection(".glstream.socket");
+    if (!glfwInit()) {
+        printf("GLFW init failed..\n");
+        return 0;
+    }
 
-    if (!transport) {
+    Server server;
+    if (!server.transport()) {
         printf("failed to set up connections...\n");
         return 0;
     }
 
-    CommandBuffer cmds;
-    if (!transport->read(cmds.writeBuffer())) {
-        printf("failed to read a blob...\n");
-        return 0;
-    }
+    server.run();
 
-    int counter = 0;
-    for (unsigned char c : cmds.buffer()) {
-        printf("%3d:%2x ", c, c);
-        if ((++counter) % 4 == 0)
-            printf("\n");
-    }
-
-    while (!cmds.atEnd()) {
-        CommandBuffer::Command cmd = cmds.pop<CommandBuffer::Command>();
-
-        switch (cmd) {
-        case CommandBuffer::CMD_glClear: {
-            GLbitfield mask = cmds.pop<GLbitfield>();
-            printf(" - glClear(%x)\n", mask);
-            break; }
-        case CommandBuffer::CMD_glClearColor: {
-            float r = cmds.pop<GLfloat>();
-            float g = cmds.pop<GLfloat>();
-            float b = cmds.pop<GLfloat>();
-            float a = cmds.pop<GLfloat>();
-            printf(" - glClearColor(%f, %f, %f, %f)\n", r, g, b, a);
-            break; }
-        default:
-            printf(" - unknown: %x / %d\n", cmd, cmd);
-            break;
-        }
-    }
+    glfwTerminate();
 
 
-    sleep(1000);
+
+
 
     return 0;
+}
+
+
+Server::Server()
+{
+    m_transport = Transport::createServer(".glstream.socket");
+    m_window = glfwCreateWindow(640, 480, "ExampleServer", nullptr, nullptr);
+}
+
+Server::~Server()
+{
+    glfwDestroyWindow(m_window);
+}
+
+void Server::run()
+{
+    glfwMakeContextCurrent(m_window);
+
+    while (!glfwWindowShouldClose(m_window))
+    {
+
+        m_cmds.reset();
+        if (!m_transport->read(m_cmds.writableBuffer())) {
+            printf("failed to read a blob...\n");
+            return;
+        }
+
+        printf("Command buffer is %d bytes\n", (int) m_cmds.buffer().size());
+        int counter = 0;
+        for (unsigned char c : m_cmds.buffer()) {
+            printf(" 0x%02x", c);
+            if ((++counter) % 16 == 0)
+                printf("\n");
+        }
+
+        process(m_cmds);
+
+        glfwPollEvents();
+    }
+}
+
+void Server::swap()
+{
+    glfwSwapBuffers(m_window);
 }

@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 int main(int argc, char **argv)
 {
@@ -65,9 +66,17 @@ int main(int argc, char **argv)
     printf(" - current read surface: %p\n", eglGetCurrentSurface(EGL_READ));
     printf(" - current draw surface: %p\n", eglGetCurrentSurface(EGL_DRAW));
 
-    glClearColor(1, 0, 0, 0.5);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ok = eglSwapBuffers(eglDisplay, eglSurface);
+    sleep(2);
+
+    int frame = 0;
+    while (frame < 100) {
+        int c = ++frame % 2;
+        glClearColor(c, 0, 1-c, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        ok = eglSwapBuffers(eglDisplay, eglSurface);
+
+        assert(ok);
+    }
 
     return 0;
 }

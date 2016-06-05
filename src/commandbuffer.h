@@ -43,6 +43,8 @@ public:
         CMD_glClearColor,
         CMD_glClear,
 
+        CMD_SwapBuffers,
+
         CMD_LastCommand
     };
 
@@ -53,26 +55,11 @@ public:
     const std::vector<unsigned char> &buffer() const { return m_data; }
     int size() const { return m_pos; }
 
-    std::vector<unsigned char> *writeBuffer() { return &m_data; }
-
-    void glClearColor(float r, float g, float b, float a) {
-        ensureCapacity(sizeof(float) * 4 + sizeof(Command));
-        push(CMD_glClearColor);
-        push(r);
-        push(g);
-        push(b);
-        push(a);
-    }
-
-    void glClear(GLbitfield mask) {
-        ensureCapacity(sizeof(GLbitfield) + sizeof(Command));
-        push(CMD_glClear);
-        push(mask);
-    }
+    std::vector<unsigned char> *writableBuffer() { return &m_data; }
 
     bool atEnd() const { return m_pos >= m_data.size(); }
 
-    template <typename T> T pop() {
+    template <typename T> T pop() const {
         assert(!atEnd());
         T t;
         memcpy(&t, m_data.data() + m_pos, sizeof(T));
@@ -80,9 +67,19 @@ public:
         return t;
     }
 
+    Command popCommand() const { return pop<Command>(); }
+
+
+    // GL Commands
+    void glClearColor(float r, float g, float b, float a);
+    void glClear(GLbitfield mask);
+
+    // EGL Commands
+    void swapBuffers();
+
 private:
-    void ensureCapacity(int toAdd) {
-        int totalSize = m_pos + toAdd;
+    void ensureCapacityForCommand(int toAdd) {
+        int totalSize = m_pos + toAdd + sizeof(Command);
         if (m_data.size() < totalSize) {
             m_data.resize(totalSize);
         }
@@ -94,6 +91,29 @@ private:
         m_pos += sizeof(T);
     }
 
-    int m_pos = 0;
+    mutable int m_pos = 0;
     std::vector<unsigned char> m_data;
 };
+
+inline void CommandBuffer::glClearColor(float r, float g, float b, float a)
+{
+    ensureCapacityForCommand(sizeof(float) * 4);
+    push(CMD_glClearColor);
+    push(r);
+    push(g);
+    push(b);
+    push(a);
+}
+
+inline void CommandBuffer::glClear(GLbitfield mask)
+{
+    ensureCapacityForCommand(sizeof(GLbitfield));
+    push(CMD_glClear);
+    push(mask);
+}
+
+inline void CommandBuffer::swapBuffers()
+{
+    ensureCapacityForCommand(0);
+    push(CMD_SwapBuffers);
+}

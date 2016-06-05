@@ -117,10 +117,11 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
     ABORT_ON_BAD_DISPLAY_WITH(false);
 
     EGLSDisplayImpl *display = (EGLSDisplayImpl *) dpy;
+    threadState->context->cmds.swapBuffers();
     display->send(threadState->context->cmds);
     threadState->context->cmds.reset();
 
-    return false;
+    return true;
 }
 
 
