@@ -27,6 +27,8 @@
 
 #include <EGL/egl.h>
 
+class Transport;
+
 struct EGLSContextImpl
 {
     EGLConfig config = 0;
@@ -46,6 +48,20 @@ struct EGLSThreadState
 
     EGLSurface drawSurface = 0;
     EGLSurface readSurface = 0;
+};
+
+class EGLSDisplayImpl
+{
+public:
+    void setInitialized(bool i) { m_initialized = i; }
+    bool isInitialized() const { return m_initialized; }
+
+    bool connectToServer();
+
+private:
+
+    Transport *m_transport = 0;
+    bool m_initialized = false;
 };
 
 

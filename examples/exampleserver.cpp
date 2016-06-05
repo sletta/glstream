@@ -30,13 +30,13 @@
 int main(int argc, char **argv)
 {
     Server server;
-    if (server.openConnection("localconnection")) {
+    if (server.openConnection(".glstream.socket")) {
         printf("connection was opened!!\n");
     } else {
         printf("connection failed!!\n");
     }
 
-    sleep(10);
+    sleep(1000);
 
     return 0;
 }

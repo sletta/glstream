@@ -30,16 +30,22 @@
 
 #ifndef GLSTREAM_LOGGING
 #define logw(format, ...)
+#define logwe(format)
 #define logi(format, ...)
+#define logie(format)
 #define logd(format, ...)
+#define logde(format)
 #else
 #  if GLSTREAM_LOGGING >= 3
 #     define logd(format, ...) { fprintf(stderr, format, __VA_ARGS__); fflush(stderr); }
+#     define logde(format) { fprintf(stderr, format); fflush(stderr); }
 #  endif
 #  if GLSTREAM_LOGGING >= 2
 #     define logi(format, ...) { fprintf(stderr, format, __VA_ARGS__); fflush(stderr); }
+#     define logie(format) { fprintf(stderr, format); fflush(stderr); }
 #  endif
 #  if GLSTREAM_LOGGING >= 1
 #     define logw(format, ...) { fprintf(stderr, format, __VA_ARGS__); fflush(stderr); }
+#     define logwe(format) { fprintf(stderr, format); fflush(stderr); }
 #  endif
 #endif

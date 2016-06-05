@@ -24,13 +24,11 @@
 */
 
 #include "egls.h"
+#include "logging.h"
+#include "transport.h"
 
 #include <iostream>
 
-struct EGLSDisplayImpl
-{
-    bool initialized = false;
-};
 
 struct EGLSConfig
 {
@@ -70,7 +68,7 @@ EGLSThreadState *egls_getThreadState()
 #define ABORT_ON_BAD_DISPLAY_WITH(returnOnFail)       \
     if (!dpy                                          \
         || dpy != &egls_global_display                \
-        || !egls_global_display.initialized) {        \
+        || !egls_global_display.isInitialized()) {        \
         printf("call failed...\n");                   \
         threadState->error = EGL_BAD_DISPLAY;         \
         return returnOnFail;                          \
@@ -102,7 +100,11 @@ EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLin
         threadState->error = EGL_BAD_DISPLAY;
         return false;
     }
-    ((EGLSDisplayImpl *) dpy)->initialized = true;
+    EGLSDisplayImpl *display = (EGLSDisplayImpl *) dpy;
+    if (!display->connectToServer())
+        return false;
+
+    display->setInitialized(true);
     *major = 1;
     *minor = 0;
     return true;
@@ -375,5 +377,21 @@ EGLAPI EGLBoolean EGLAPIENTRY eglWaitNative (EGLint engine)
 {
     std::cerr << __PRETTY_FUNCTION__ << ": not implemented!" << std::endl;
     return false;
+}
+
+
+bool EGLSDisplayImpl::connectToServer()
+{
+    const char *address = getenv("GLSTREAM_ADDRESS");
+    if (!address || strlen(address) == 0) {
+        logwe("EGLDisplay: environment variable GLSTREAM_ADDRESS is not specified");
+        return false;
+    }
+
+    logi("EGLDisplay: making connection to server at '%s'\n", address);
+    m_transport = Transport::connect(address);
+
+
+    return m_transport != 0;
 }
 

@@ -26,6 +26,7 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
 
 class Transport;
 
@@ -37,5 +38,6 @@ public:
     bool openConnection(const char *address);
 
 private:
+    std::mutex m_connectionMutex;
     std::vector<Transport *> m_connections;
 };

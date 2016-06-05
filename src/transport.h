@@ -28,10 +28,9 @@
 class Transport
 {
 public:
+    virtual ~Transport() { }
 
-    static Transport *createAndBind(const char *address);
-
-private:
-
-    int m_fd;
+    static Transport *awaitConnection(const char *address);
+    static Transport *connect(const char *address);
 };
+

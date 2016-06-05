@@ -32,29 +32,141 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
+
+#include <memory>
 
 
-Transport *Transport::createAndBind(const char *address)
+
+class UnixDomainSocket : public Transport
 {
-    logd("Transport: binding to: %s\n", address);
+public:
+    UnixDomainSocket();
 
-    Transport *transport = new Transport();
-
-    transport->m_fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    logd(" - fd: %d\n", transport->m_fd);
-
-    struct sockaddr_un addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, address, sizeof(addr.sun_path)-1);
-
-    if (bind(transport->m_fd, (struct sockaddr*)&addr, sizeof(addr)) == 0) {
-        logd(" - bound successfully to '%s'\n", address);
-        return transport;
+    static sockaddr_un transport_sockaddrForAddress(const char *address)
+    {
+        sockaddr_un addr;
+        memset(&addr, 0, sizeof(addr));
+        addr.sun_family = AF_UNIX;
+        strncpy(addr.sun_path, address, sizeof(addr.sun_path)-1);
+        return addr;
     }
 
-    logw("Transport: failed to bind socket, error code: %d/%x\n", errno, errno);
+    int socket() const { return m_socket; }
 
-    delete transport;
-    return 0;
+    int m_socket = 0;
+};
+
+
+
+class ServerSocket : public UnixDomainSocket
+{
+public:
+    bool connect(const char *address);
+
+    int m_readSocket = 0;
+};
+
+
+
+class ClientSocket : public UnixDomainSocket
+{
+public:
+    bool connect(const char *address);
+};
+
+
+
+Transport *Transport::awaitConnection(const char *address)
+{
+    std::unique_ptr<ServerSocket> server(new ServerSocket());
+    int unlinked = unlink(address);
+    logd("Transport: awaiting connection, address=%s, socket=%d, unlink=%d\n",
+         address,
+         server->m_socket,
+         unlinked);
+
+    if (!server->connect(address)) {
+        logw("Transport: server failed to connect, socket=%d, readSocket=%d, address=%s, error=%s\n",
+             server->m_socket,
+             server->m_readSocket,
+             address,
+             strerror(errno));
+        return nullptr;
+    }
+
+    logi("Transport: connection established with client, address=%s, socket=%d, readSocket=%d\n",
+         address,
+         server->m_socket,
+         server->m_readSocket);
+
+    return server.release();
 }
+
+
+Transport *Transport::connect(const char *address)
+{
+    std::unique_ptr<ClientSocket> client(new ClientSocket());
+    logd("Transport:(%s), using fd=%d\n", address, client->socket());
+
+    if (!client->connect(address)) {
+        logw("Transport: cient failed to connect, socket=%d, address=%s, error=%s\n",
+             client->socket(),
+             address,
+             strerror(errno));
+        return nullptr;
+    }
+
+    logi("Transport: connection established to server, address=%s, socket=%d\n",
+         address,
+         client->socket());
+
+    return client.release();
+}
+
+
+
+UnixDomainSocket::UnixDomainSocket()
+{
+    m_socket = ::socket(AF_UNIX, SOCK_STREAM, 0);
+}
+
+
+
+bool ServerSocket::connect(const char *address)
+{
+    sockaddr_un addr = transport_sockaddrForAddress(address);
+
+    if (bind(m_socket, (sockaddr *) &addr, sizeof(addr)) != 0) {
+        logde(" - failed to bind..\n");
+        return false;
+    }
+
+    if (listen(m_socket, 0) != 0) {
+        logde(" - failed to listen..\n");
+        return false;
+    }
+
+    logi("Transport: awaiting connection on address=%s, socket=%d\n", address, m_socket);
+    m_readSocket = accept(m_socket, 0, 0);
+    if (m_readSocket <= 0) {
+        logde(" - failed to accept\n");
+        return false;
+    }
+
+    return true;
+}
+
+
+
+bool ClientSocket::connect(const char *address)
+{
+    sockaddr_un addr = transport_sockaddrForAddress(address);
+    if (::connect(m_socket, (sockaddr *) &addr, sizeof(addr)) != 0) {
+        logde(" - connection failed..\n");
+        return false;
+    }
+
+    return true;
+}
+
