@@ -117,9 +117,10 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
     ABORT_ON_BAD_DISPLAY_WITH(false);
 
     EGLSDisplayImpl *display = (EGLSDisplayImpl *) dpy;
-    threadState->context->cmds.swapBuffers();
+    auto &cmd(threadState->context->cmds);
+    cmd.add(CommandBuffer::CMD_SwapBuffers);
     display->flush(threadState->context);
-
+    cmd.reset();
     return true;
 }
 
@@ -167,7 +168,7 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
     // ### ignoring attrib_list for now..
     EGLSContextImpl *context = new EGLSContextImpl();
     context->config = config;
-    context->display = dpy;
+    context->display = (EGLSDisplayImpl *) dpy;
     return context;
 }
 
@@ -388,7 +389,7 @@ bool EGLSDisplayImpl::connectToServer()
 {
     const char *address = getenv("GLSTREAM_ADDRESS");
     if (!address || strlen(address) == 0) {
-        logwe("EGLDisplay: environment variable GLSTREAM_ADDRESS is not specified");
+        logw("EGLDisplay: environment variable GLSTREAM_ADDRESS is not specified");
         return false;
     }
 
@@ -404,12 +405,12 @@ bool EGLSDisplayImpl::flush(EGLSContextImpl *context)
     CommandBuffer &cmds(context->cmds);
     bool ok = m_transport->write(cmds.buffer(), cmds.size());
     cmds.reset();
+    logd(" - size after reset in flush is: %d\n", cmds.size());
     if (!ok)
         return false;
-    logde(" - waiting for server to accept our buffer\n");
+    logd(" - waiting for server to accept our buffer\n");
     m_transport->read(cmds.writableBuffer());
     logd(" - server consumed buffer, returned %d bytes\n", cmds.size());
-    cmds.reset();
 
     m_transportMutex.unlock();
     return ok;

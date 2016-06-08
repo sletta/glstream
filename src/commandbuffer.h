@@ -25,8 +25,6 @@
 
 #pragma once
 
-#include <GLES2/gl2.h>
-
 #include <vector>
 #include <assert.h>
 #include <cstring>
@@ -40,10 +38,153 @@ public:
 
     enum Command {
         CMD_EndOfStream,
-        CMD_glClearColor,
+
+        CMD_glActiveTexture,
+        CMD_glAttachShader,
+        CMD_glBindAttribLocation,
+        CMD_glBindBuffer,
+        CMD_glBindFramebuffer,
+        CMD_glBindRenderbuffer,
+        CMD_glBindTexture,
+        CMD_glBlendColor,
+        CMD_glBlendEquation,
+        CMD_glBlendEquationSeparate,
+        CMD_glBlendFunc,
+        CMD_glBlendFuncSeparate,
+        CMD_glBufferData,
+        CMD_glBufferSubData,
+        CMD_glCheckFramebufferStatus,
         CMD_glClear,
+        CMD_glClearColor,
+        CMD_glClearDepthf,
+        CMD_glClearStencil,
+        CMD_glColorMask,
+        CMD_glCompileShader,
+        CMD_glCompressedTexImage2D,
+        CMD_glCompressedTexSubImage2D,
+        CMD_glCopyTexImage2D,
+        CMD_glCopyTexSubImage2D,
+        CMD_glCreateProgram,
+        CMD_glCreateShader,
+        CMD_glCullFace,
+        CMD_glDeleteBuffers,
+        CMD_glDeleteFramebuffers,
+        CMD_glDeleteProgram,
+        CMD_glDeleteRenderbuffers,
+        CMD_glDeleteShader,
+        CMD_glDeleteTextures,
+        CMD_glDepthFunc,
+        CMD_glDepthMask,
+        CMD_glDepthRangef,
+        CMD_glDetachShader,
+        CMD_glDisable,
+        CMD_glDisableVertexAttribArray,
+        CMD_glDrawArrays,
+        CMD_glDrawElements,
+        CMD_glEnable,
+        CMD_glEnableVertexAttribArray,
+        CMD_glFinish,
+        CMD_glFlush,
+        CMD_glFramebufferRenderbuffer,
+        CMD_glFramebufferTexture2D,
+        CMD_glFrontFace,
+        CMD_glGenBuffers,
+        CMD_glGenerateMipmap,
+        CMD_glGenFramebuffers,
+        CMD_glGenRenderbuffers,
+        CMD_glGenTextures,
+        CMD_glGetActiveAttrib,
+        CMD_glGetActiveUniform,
+        CMD_glGetAttachedShaders,
+        CMD_glGetAttribLocation,
+        CMD_glGetBooleanv,
+        CMD_glGetBufferParameteriv,
+        CMD_glGetError,
+        CMD_glGetFloatv,
+        CMD_glGetFramebufferAttachmentParameteriv,
+        CMD_glGetIntegerv,
+        CMD_glGetProgramiv,
+        CMD_glGetProgramInfoLog,
+        CMD_glGetRenderbufferParameteriv,
+        CMD_glGetShaderiv,
+        CMD_glGetShaderInfoLog,
+        CMD_glGetShaderPrecisionFormat,
+        CMD_glGetShaderSource,
+        CMD_glGetString,
+        CMD_glGetTexParameterfv,
+        CMD_glGetTexParameteriv,
+        CMD_glGetUniformfv,
+        CMD_glGetUniformiv,
+        CMD_glGetUniformLocation,
+        CMD_glGetVertexAttribfv,
+        CMD_glGetVertexAttribiv,
+        CMD_glGetVertexAttribPointerv,
+        CMD_glHint,
+        CMD_glIsBuffer,
+        CMD_glIsEnabled,
+        CMD_glIsFramebuffer,
+        CMD_glIsProgram,
+        CMD_glIsRenderbuffer,
+        CMD_glIsShader,
+        CMD_glIsTexture,
+        CMD_glLineWidth,
+        CMD_glLinkProgram,
+        CMD_glPixelStorei,
+        CMD_glPolygonOffset,
+        CMD_glReadPixels,
+        CMD_glReleaseShaderCompiler,
+        CMD_glRenderbufferStorage,
+        CMD_glSampleCoverage,
+        CMD_glScissor,
+        CMD_glShaderBinary,
+        CMD_glShaderSource,
+        CMD_glStencilFunc,
+        CMD_glStencilFuncSeparate,
+        CMD_glStencilMask,
+        CMD_glStencilMaskSeparate,
+        CMD_glStencilOp,
+        CMD_glStencilOpSeparate,
+        CMD_glTexImage2D,
+        CMD_glTexParameterf,
+        CMD_glTexParameterfv,
+        CMD_glTexParameteri,
+        CMD_glTexParameteriv,
+        CMD_glTexSubImage2D,
+        CMD_glUniform1f,
+        CMD_glUniform1fv,
+        CMD_glUniform1i,
+        CMD_glUniform1iv,
+        CMD_glUniform2f,
+        CMD_glUniform2fv,
+        CMD_glUniform2i,
+        CMD_glUniform2iv,
+        CMD_glUniform3f,
+        CMD_glUniform3fv,
+        CMD_glUniform3i,
+        CMD_glUniform3iv,
+        CMD_glUniform4f,
+        CMD_glUniform4fv,
+        CMD_glUniform4i,
+        CMD_glUniform4iv,
+        CMD_glUniformMatrix2fv,
+        CMD_glUniformMatrix3fv,
+        CMD_glUniformMatrix4fv,
+        CMD_glUseProgram,
+        CMD_glValidateProgram,
+        CMD_glVertexAttrib1f,
+        CMD_glVertexAttrib1fv,
+        CMD_glVertexAttrib2f,
+        CMD_glVertexAttrib2fv,
+        CMD_glVertexAttrib3f,
+        CMD_glVertexAttrib3fv,
+        CMD_glVertexAttrib4f,
+        CMD_glVertexAttrib4fv,
+        CMD_glVertexAttribPointer,
+        CMD_glViewport,
 
         CMD_SwapBuffers,
+
+        CMD_Reply_glGetShaderiv,
 
         CMD_Ack,
 
@@ -52,6 +193,11 @@ public:
 
     void reset() {
         m_pos = 0;
+
+        // Just so we're not sitting on huge command buffers with textures and
+        // such indefinitely, cap it to 64kb
+        if (m_data.size() > 0xffff)
+            m_data.clear();
     }
 
     const std::vector<unsigned char> &buffer() const { return m_data; }
@@ -71,23 +217,18 @@ public:
 
     Command popCommand() const { return pop<Command>(); }
 
+    // Expands the command buffer array to contain one command and however
+    // many bytes are requested in 'additionalBytes'
+    void add(Command cmd, int additionalBytes = 0) {
+        grow(m_pos + additionalBytes + sizeof(Command));
+        push(cmd);
+    }
 
-    // GL Commands
-    void glClearColor(float r, float g, float b, float a);
-    void glClear(GLbitfield mask);
-
-    // EGL Commands
-    void swapBuffers();
-
-    // Other commands
-    void ack();
-
-private:
-    void ensureCapacityForCommand(int toAdd) {
-        int totalSize = m_pos + toAdd + sizeof(Command);
-        if (m_data.size() < totalSize) {
+    // Expand the command buffer to contain 'bytes' more bytes
+    void grow(int bytes) {
+        int totalSize = m_pos + bytes;
+        if (m_data.size() < totalSize)
             m_data.resize(totalSize);
-        }
     }
 
     template <typename T> void push(T x) {
@@ -96,35 +237,19 @@ private:
         m_pos += sizeof(T);
     }
 
+    void push(const char *string, int length) {
+        assert(m_data.size() >= m_pos + length + sizeof(int));
+        push(length);
+        memcpy(m_data.data() + m_pos, string, length);
+        m_pos += length;
+    }
+
+    void advance(int bytes) const { m_pos += bytes; }
+    const void *raw() const { return (void *) (m_data.data() + m_pos); }
+
+private:
+
     mutable int m_pos = 0;
     std::vector<unsigned char> m_data;
 };
 
-inline void CommandBuffer::glClearColor(float r, float g, float b, float a)
-{
-    ensureCapacityForCommand(sizeof(float) * 4);
-    push(CMD_glClearColor);
-    push(r);
-    push(g);
-    push(b);
-    push(a);
-}
-
-inline void CommandBuffer::glClear(GLbitfield mask)
-{
-    ensureCapacityForCommand(sizeof(GLbitfield));
-    push(CMD_glClear);
-    push(mask);
-}
-
-inline void CommandBuffer::swapBuffers()
-{
-    ensureCapacityForCommand(0);
-    push(CMD_SwapBuffers);
-}
-
-inline void CommandBuffer::ack()
-{
-    ensureCapacityForCommand(0);
-    push(CMD_Ack);
-}

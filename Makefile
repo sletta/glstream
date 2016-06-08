@@ -31,6 +31,7 @@ SERVER_LIB_NAME     := lib$(SERVER_LIB_BASENAME).$(LIB_SUFFIX).$(LIB_VERSION)
 # Could probably separate server/client headers, but it isn't a big problem, so..
 HEADERS             := src/commandbuffer.h \
 					   src/egls.h \
+					   src/globjectpool.h \
 					   src/logging.h \
 					   src/replayer.h \
 					   src/server.h \

@@ -31,7 +31,7 @@
 #include <GLES2/gl2.h>
 
 
-class GLObjectList
+class GLObjectPool
 {
 public:
     typedef std::vector<GLuint>::const_iterator const_iterator;
@@ -48,7 +48,7 @@ private:
 };
 
 
-inline GLuint GLObjectList::allocate()
+inline GLuint GLObjectPool::allocate()
 {
     int pos = 0;
     while (m_ids.size() > pos && m_ids[pos] == pos + 1)
@@ -58,7 +58,7 @@ inline GLuint GLObjectList::allocate()
 }
 
 
-inline void GLObjectList::release(GLuint id)
+inline void GLObjectPool::release(GLuint id)
 {
     auto end = m_ids.end();
     auto pos = std::find(m_ids.begin(), end, id);

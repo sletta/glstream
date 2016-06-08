@@ -28,15 +28,22 @@
 #include <EGL/egl.h>
 
 #include "commandbuffer.h"
+#include "globjectpool.h"
 
 #include <mutex>
 
 class Transport;
+class EGLSDisplayImpl;
 
 struct EGLSContextImpl
 {
     EGLConfig config = 0;
-    EGLDisplay display = 0;
+    EGLSDisplayImpl *display = 0;
+
+    GLObjectPool shaders;
+    GLObjectPool programs;
+    GLObjectPool textures;
+    GLObjectPool buffers;
 
     CommandBuffer cmds;
 };

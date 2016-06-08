@@ -1,9 +1,9 @@
 #include <iostream>
-#include "globjectlist.h"
+#include "globjectpool.h"
 
 int main(int argc, char **argv)
 {
-    GLObjectList list;
+    GLObjectPool list;
 
     std::vector<GLuint> allocated;
 
@@ -37,5 +37,5 @@ int main(int argc, char **argv)
 //
 // to compile:
 //
-// > clang++ -g -std=c++11 -I../src tst_globjectlist.cpp -o tst_globjectlist && ./tst_globjectlist
+// > clang++ -g -std=c++11 -I../src tst_globjectpool.cpp -o tst_globjectpool && ./tst_globjectpool
 //

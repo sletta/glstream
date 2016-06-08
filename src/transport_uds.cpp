@@ -133,13 +133,13 @@ UnixDomainSocket::UnixDomainSocket()
 {
 }
 
-bool UnixDomainSocket::read(std::vector<unsigned char> *buffer)
+int UnixDomainSocket::read(std::vector<unsigned char> *buffer)
 {
     int size = 0;
     if (::read(m_socket, &size, sizeof(int)) != sizeof(int)) {
-        logwe("Transport: failed to read size from socket\n");
+        logw("Transport: failed to read size from socket\n");
         buffer->resize(0);
-        return false;
+        return 0;
     }
 
     // logd("Transport: read pending=%d, bufferSize=%d\n", size, (int) buffer->size());
@@ -150,23 +150,25 @@ bool UnixDomainSocket::read(std::vector<unsigned char> *buffer)
     if (count != size) {
         logw("Transport: read failed, read=%d, expected=%d\n", count, size);
         buffer->resize(0);
-        return false;
+        return 0;
     }
 
-    return true;
+    return size;
 }
 
 bool UnixDomainSocket::write(const std::vector<unsigned char> &buffer, int size)
 {
     assert(buffer.size() >= size);
 
+
+
     if (::write(m_socket, &size, sizeof(int)) != sizeof(int)) {
-        logwe("Transport: failed to write size to socket\n");
+        logw("Transport: failed to write size to socket\n");
         return false;
     }
 
     if (::write(m_socket, buffer.data(), size) != size) {
-        logwe("Transport: failed to write buffer to socket..\n");
+        logw("Transport: failed to write buffer to socket..\n");
         return false;
     }
 
@@ -187,19 +189,19 @@ bool ServerSocket::connect(const char *address)
     sockaddr_un addr = transport_sockaddrForAddress(address);
 
     if (bind(m_serverSocket, (sockaddr *) &addr, sizeof(addr)) != 0) {
-        logde(" - failed to bind..\n");
+        logd(" - failed to bind..\n");
         return false;
     }
 
     if (listen(m_serverSocket, 0) != 0) {
-        logde(" - failed to listen..\n");
+        logd(" - failed to listen..\n");
         return false;
     }
 
     logi("Transport: awaiting connection on address=%s, socket=%d\n", address, m_socket);
     m_socket = accept(m_serverSocket, 0, 0);
     if (m_socket <= 0) {
-        logde(" - failed to accept\n");
+        logd(" - failed to accept\n");
         return false;
     }
 
@@ -217,7 +219,7 @@ bool ClientSocket::connect(const char *address)
 {
     sockaddr_un addr = transport_sockaddrForAddress(address);
     if (::connect(m_socket, (sockaddr *) &addr, sizeof(addr)) != 0) {
-        logde(" - connection failed..\n");
+        logd(" - connection failed..\n");
         return false;
     }
 

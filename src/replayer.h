@@ -25,7 +25,10 @@
 
 #pragma once
 
+#include <GLES2/gl2.h>
+
 #include "commandbuffer.h"
+#include "flatmap.h"
 
 class Replayer
 {
@@ -37,4 +40,10 @@ public:
     void process(const CommandBuffer &buffer);
 
     virtual void swap() { }
+    virtual void reply(const CommandBuffer &buffer) { };
+
+protected:
+    FlatMap<GLuint, GLuint> m_shaders;
+
+    CommandBuffer m_reply;
 };
