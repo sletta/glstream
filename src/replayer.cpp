@@ -6,6 +6,8 @@
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 
+#include <cstring>
+
 Replayer::Replayer()
 {
 }
@@ -319,6 +321,21 @@ void Replayer::process(const CommandBuffer &cmd)
             } break;
 
             case CommandBuffer::CMD_glGetShaderInfoLog: {
+                GLuint cid = cmd.pop<GLuint>();
+                GLuint id = m_shaders.find(cid, -1);
+                GLsizei size = cmd.pop<GLsizei>();
+                GLchar *str = (GLchar *) malloc(size);
+                GLsizei actualSize;
+                glGetShaderInfoLog(id, size, &actualSize, str);
+                logd(" - glGetShaderInfoLog(%d-%d, %d, %d, ..):\n%s\n", cid, id, size, actualSize, str);
+                m_reply.add(CommandBuffer::CMD_Reply_glGetShaderInfoLog);
+                m_reply.growBy(actualSize + sizeof(GLsizei));
+                m_reply.push(str, actualSize);
+
+                free(str);
+                reply(m_reply);
+                m_reply.reset();
+
                 logd(" - glGetShaderInfoLog\n");
             } break;
 
@@ -447,6 +464,7 @@ void Replayer::process(const CommandBuffer &cmd)
                 std::vector<GLint> lengths;
                 for (int i=0; i<count; ++i) {
                     int l = cmd.pop<GLint>();
+                    lengths.push_back(l);
                     strings.push_back((const GLchar *) cmd.rawAtPosition());
                     logd("\n%s\n", strings.back());
                     cmd.advance(l);

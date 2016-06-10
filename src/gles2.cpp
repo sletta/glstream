@@ -33,7 +33,7 @@
         logw("No current context (%s)", __PRETTY_FUNCTION__);        \
         exit(-1);                                                    \
     }                                                                \
-    auto &cmd(context->cmds)
+    auto &cmd = context->cmds;
 
 #define END_GLES2_FUNCTION
 
@@ -533,8 +533,7 @@ extern "C" GL_APICALL void GL_APIENTRY glGetShaderiv (GLuint shader, GLenum pnam
     cmd.add(CommandBuffer::CMD_glGetShaderiv, sizeof(GLuint) + sizeof(GLenum));
     cmd.push(shader);
     cmd.push(pname);
-    context->display->flush(context);
-
+    context->synchronize();
     CommandBuffer::Command reply = cmd.popCommand();
     assert(reply == CommandBuffer::CMD_Reply_glGetShaderiv);
     *params = cmd.pop<GLint>();
@@ -546,8 +545,22 @@ extern "C" GL_APICALL void GL_APIENTRY glGetShaderiv (GLuint shader, GLenum pnam
 
 extern "C" GL_APICALL void GL_APIENTRY glGetShaderInfoLog (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
+    logd("glGetShaderInfoLog(%d, %d, %p, %p)\n", shader, bufSize, length, infoLog);
+    assert(length);
+    assert(infoLog);
     BEGIN_GLES2_FUNCTION;
     cmd.add(CommandBuffer::CMD_glGetShaderInfoLog);
+    cmd.push(shader);
+    cmd.push(bufSize);
+
+    context->synchronize();
+
+    CommandBuffer::Command reply = cmd.popCommand();
+    assert(reply == CommandBuffer::CMD_Reply_glGetShaderInfoLog);
+    *length = std::min(cmd.pop<GLsizei>(), bufSize);
+    memcpy(infoLog, cmd.rawAtPosition(), *length);
+    cmd.reset();
+
     END_GLES2_FUNCTION;
 }
 

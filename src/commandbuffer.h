@@ -182,9 +182,10 @@ public:
         CMD_glVertexAttribPointer,
         CMD_glViewport,
 
-        CMD_SwapBuffers,
+        CMD_SwapBuffers = 1000,
 
-        CMD_Reply_glGetShaderiv,
+        CMD_Reply_glGetShaderiv = 2000,
+        CMD_Reply_glGetShaderInfoLog,
 
         CMD_Ack,
 
@@ -193,6 +194,7 @@ public:
 
     void reset() {
         m_pos = 0;
+        m_lastCommand = 0;
 
         // Just so we're not sitting on huge command buffers with textures and
         // such indefinitely, cap it to 64kb
@@ -250,10 +252,23 @@ public:
     }
 
     void advance(int bytes) const { m_pos += bytes; }
-    const void *rawAtPosition() const { return (void *) (m_data.data() + m_pos); }
+
+    unsigned char *rawAtPosition() { return m_data.data() + m_pos; }
+    const unsigned char *rawAtPosition() const { return m_data.data() + m_pos; }
 
     unsigned char *rawAtStart() { return m_data.data(); }
     const unsigned char *rawAtStart() const { return m_data.data(); }
+
+    void dump() {
+        printf("Command buffer is %d bytes, pos=%d\n", m_lastCommand, m_pos);
+        int counter = 0;
+        for (int i=0; i<m_lastCommand; ++i) {
+            printf(" 0x%02x", rawAtStart()[i]);
+            if ((++counter) % 16 == 0 || i == m_lastCommand - 1)
+                printf("\n");
+        }
+    }
+
 
 private:
     mutable int m_pos = 0;

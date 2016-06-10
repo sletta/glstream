@@ -107,13 +107,7 @@ void Server::run()
             return;
         }
 
-        printf("Command buffer is %d bytes\n", bytesRead);
-        int counter = 0;
-        for (int i=0; i<bytesRead; ++i) {
-            printf(" 0x%02x", m_cmds.rawAtStart()[i]);
-            if ((++counter) % 16 == 0 || i == bytesRead - 1)
-                printf("\n");
-        }
+        m_cmds.dump();
 
         logd(" - processing command buffer\n");
         process(m_cmds);

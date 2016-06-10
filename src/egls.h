@@ -37,6 +37,8 @@ class EGLSDisplayImpl;
 
 struct EGLSContextImpl
 {
+    void synchronize();
+
     EGLConfig config = 0;
     EGLSDisplayImpl *display = 0;
 
@@ -78,6 +80,11 @@ private:
     Transport *m_transport = 0;
     bool m_initialized = false;
 };
+
+inline void EGLSContextImpl::synchronize()
+{
+    display->flush(this);
+}
 
 
 EGLSThreadState *egls_getThreadState();
