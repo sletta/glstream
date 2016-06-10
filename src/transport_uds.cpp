@@ -53,8 +53,8 @@ public:
         return addr;
     }
 
-    bool read(std::vector<unsigned char> *buffer);
-    bool write(const std::vector<unsigned char> &buffer, int size);
+    int read(CommandBuffer *buffer);
+    int write(const CommandBuffer &buffer);
 
     int socket() const { return m_socket; }
 
@@ -133,48 +133,47 @@ UnixDomainSocket::UnixDomainSocket()
 {
 }
 
-int UnixDomainSocket::read(std::vector<unsigned char> *buffer)
+int UnixDomainSocket::read(CommandBuffer *buffer)
 {
+    assert(buffer->position() == 0);
+
     int size = 0;
     if (::read(m_socket, &size, sizeof(int)) != sizeof(int)) {
         logw("Transport: failed to read size from socket\n");
-        buffer->resize(0);
+        buffer->reset();
         return 0;
     }
 
     // logd("Transport: read pending=%d, bufferSize=%d\n", size, (int) buffer->size());
-    if (buffer->size() < size)
-        buffer->resize(size);
+    buffer->growTo(size);
 
-    int count = ::read(m_socket, buffer->data(), size);
+    int count = ::read(m_socket, buffer->rawAtStart(), size);
     if (count != size) {
         logw("Transport: read failed, read=%d, expected=%d\n", count, size);
-        buffer->resize(0);
+        buffer->reset();
         return 0;
     }
 
     return size;
 }
 
-bool UnixDomainSocket::write(const std::vector<unsigned char> &buffer, int size)
+int UnixDomainSocket::write(const CommandBuffer &buffer)
 {
-    assert(buffer.size() >= size);
-
-
+    int size = buffer.position();
 
     if (::write(m_socket, &size, sizeof(int)) != sizeof(int)) {
         logw("Transport: failed to write size to socket\n");
-        return false;
+        return 0;
     }
 
-    if (::write(m_socket, buffer.data(), size) != size) {
+    if (::write(m_socket, buffer.rawAtStart(), size) != size) {
         logw("Transport: failed to write buffer to socket..\n");
-        return false;
+        return 0;
     }
 
     // logd("Transport: wrote %d bytes...\n", size);
 
-    return true;
+    return size;
 }
 
 

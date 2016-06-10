@@ -200,12 +200,23 @@ public:
             m_data.clear();
     }
 
-    const std::vector<unsigned char> &buffer() const { return m_data; }
-    int size() const { return m_pos; }
+    int position() const { return m_pos; }
 
-    std::vector<unsigned char> *writableBuffer() { return &m_data; }
+    int capacity() const { return m_data.size(); }
 
-    bool atEnd() const { return m_pos >= m_data.size(); }
+    // Expand the command buffer to contain 'bytes' more bytes
+    void growTo(int totalSize) {
+        m_lastCommand = totalSize;
+        if (m_data.size() < totalSize)
+            m_data.resize(totalSize);
+    }
+
+    void growBy(int bytes) {
+        growTo(m_pos + bytes);
+    }
+
+
+    bool atEnd() const { return m_pos >= m_lastCommand; }
 
     template <typename T> T pop() const {
         assert(!atEnd());
@@ -220,16 +231,10 @@ public:
     // Expands the command buffer array to contain one command and however
     // many bytes are requested in 'additionalBytes'
     void add(Command cmd, int additionalBytes = 0) {
-        grow(m_pos + additionalBytes + sizeof(Command));
+        growBy(m_pos + additionalBytes + sizeof(Command));
         push(cmd);
     }
 
-    // Expand the command buffer to contain 'bytes' more bytes
-    void grow(int bytes) {
-        int totalSize = m_pos + bytes;
-        if (m_data.size() < totalSize)
-            m_data.resize(totalSize);
-    }
 
     template <typename T> void push(T x) {
         assert(m_data.size() >= m_pos + sizeof(T));
@@ -245,11 +250,14 @@ public:
     }
 
     void advance(int bytes) const { m_pos += bytes; }
-    const void *raw() const { return (void *) (m_data.data() + m_pos); }
+    const void *rawAtPosition() const { return (void *) (m_data.data() + m_pos); }
+
+    unsigned char *rawAtStart() { return m_data.data(); }
+    const unsigned char *rawAtStart() const { return m_data.data(); }
 
 private:
-
     mutable int m_pos = 0;
+    int m_lastCommand = 0;
     std::vector<unsigned char> m_data;
 };
 

@@ -403,14 +403,13 @@ bool EGLSDisplayImpl::flush(EGLSContextImpl *context)
 {
     m_transportMutex.lock();
     CommandBuffer &cmds(context->cmds);
-    bool ok = m_transport->write(cmds.buffer(), cmds.size());
+    bool ok = m_transport->write(cmds);
     cmds.reset();
-    logd(" - size after reset in flush is: %d\n", cmds.size());
     if (!ok)
         return false;
     logd(" - waiting for server to accept our buffer\n");
-    m_transport->read(cmds.writableBuffer());
-    logd(" - server consumed buffer, returned %d bytes\n", cmds.size());
+    int bytes = m_transport->read(&cmds);
+    logd(" - server consumed buffer, returned %d bytes\n", bytes);
 
     m_transportMutex.unlock();
     return ok;

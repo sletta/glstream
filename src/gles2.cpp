@@ -765,6 +765,7 @@ extern "C" GL_APICALL void GL_APIENTRY glShaderBinary (GLsizei count, const GLui
 
 extern "C" GL_APICALL void GL_APIENTRY glShaderSource (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
 {
+    logd("glShaderSource(%d, %d, ..., %p)\n", shader, count, length);
     BEGIN_GLES2_FUNCTION;
     int byteSize = sizeof(GLsizei);
     cmd.add(CommandBuffer::CMD_glShaderSource, sizeof(GLuint) + sizeof(GLsizei));
@@ -772,7 +773,7 @@ extern "C" GL_APICALL void GL_APIENTRY glShaderSource (GLuint shader, GLsizei co
     cmd.push(count);
     for (int i=0; i<count; ++i) {
         GLint len = length ? length[i] : strlen(string[i]);
-        cmd.grow(sizeof(GLint) + len);
+        cmd.growBy(sizeof(GLint) + len);
         cmd.push(string[i], len);
     }
     END_GLES2_FUNCTION;

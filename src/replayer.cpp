@@ -447,7 +447,7 @@ void Replayer::process(const CommandBuffer &cmd)
                 std::vector<GLint> lengths;
                 for (int i=0; i<count; ++i) {
                     int l = cmd.pop<GLint>();
-                    strings.push_back((const GLchar *) cmd.raw());
+                    strings.push_back((const GLchar *) cmd.rawAtPosition());
                     logd("\n%s\n", strings.back());
                     cmd.advance(l);
                 }

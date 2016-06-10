@@ -27,6 +27,8 @@
 
 #include <vector>
 
+#include "commandbuffer.h"
+
 class Transport
 {
 public:
@@ -35,7 +37,7 @@ public:
     static Transport *createServer(const char *address);
     static Transport *createClient(const char *address);
 
-    virtual bool read(std::vector<unsigned char> *buffer) = 0;
-    virtual bool write(const std::vector<unsigned char> &buffer, int size) = 0;
+    virtual int read(CommandBuffer *buffer) = 0;
+    virtual int write(const CommandBuffer &buffer) = 0;
 };
 

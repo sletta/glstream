@@ -101,16 +101,17 @@ void Server::run()
     {
         logd(" - read another command buffer...\n");
         m_cmds.reset();
-        if (!m_transport->read(m_cmds.writableBuffer())) {
+        int bytesRead = m_transport->read(&m_cmds);
+        if (bytesRead == 0) {
             logw("failed to read a blob...\n");
             return;
         }
 
-        printf("Command buffer is %d bytes\n", (int) m_cmds.buffer().size());
+        printf("Command buffer is %d bytes\n", bytesRead);
         int counter = 0;
-        for (unsigned char c : m_cmds.buffer()) {
-            printf(" 0x%02x", c);
-            if ((++counter) % 16 == 0)
+        for (int i=0; i<bytesRead; ++i) {
+            printf(" 0x%02x", m_cmds.rawAtStart()[i]);
+            if ((++counter) % 16 == 0 || i == bytesRead - 1)
                 printf("\n");
         }
 
@@ -124,12 +125,12 @@ void Server::run()
 void Server::swap()
 {
     // send back that we consumed the buffer..
-    m_transport->write(m_ackBuffer.buffer(), m_ackBuffer.size());
+    m_transport->write(m_ackBuffer);
     glfwSwapBuffers(m_window);
 }
 
 void Server::reply(const CommandBuffer &cmd)
 {
-    logd(" - sending reply in the middle of rendering, %d bytes\n", cmd.size());
-    m_transport->write(cmd.buffer(), cmd.size());
+    logd(" - sending reply in the middle of rendering, %d bytes\n", cmd.position());
+    m_transport->write(cmd);
 }

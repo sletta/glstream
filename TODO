@@ -1,11 +1,5 @@
 TODO:
 
- - CommandBuffer needs to contain a 'size in use' in addition to the m_pos iterator position
-   as the pool can be separate from the actual size.
-
- - Sending command buffers to Transport as std::vector<> is a bit awkward, lets rather do
-   it as CommandBuffer instances..
-
  - We're currently sending ack just before swap. Perhaps we could send it sooner?
 
  - Context sharing: If a context is sharing with another, we can adopt the
