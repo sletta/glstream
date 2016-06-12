@@ -25,12 +25,14 @@
 
 #pragma once
 
-#include <vector>
 #include <assert.h>
-#include <cstring>
+
+#include <algorithm>
 #include <iostream>
-// #include <stdlib.h>
-// #include <stdio.h>
+#include <vector>
+
+#include <cstring>
+
 
 class CommandBuffer
 {
@@ -184,7 +186,13 @@ public:
 
         CMD_SwapBuffers = 1000,
 
-        CMD_Reply_glGetShaderiv = 2000,
+        CMD_Reply_FirstReply,
+        CMD_Reply_glCreateProgram,
+        CMD_Reply_glCreateShader,
+        CMD_Reply_glGetError,
+        CMD_Reply_glGetProgramiv,
+        CMD_Reply_glGetProgramInfoLog,
+        CMD_Reply_glGetShaderiv,
         CMD_Reply_glGetShaderInfoLog,
 
         CMD_Ack,
@@ -202,13 +210,14 @@ public:
             m_data.clear();
     }
 
+    void setLastCommand(int lastCommand) { m_lastCommand = lastCommand; }
+
     int position() const { return m_pos; }
 
     int capacity() const { return m_data.size(); }
 
     // Expand the command buffer to contain 'bytes' more bytes
     void growTo(int totalSize) {
-        m_lastCommand = totalSize;
         if (m_data.size() < totalSize)
             m_data.resize(totalSize);
     }
@@ -216,7 +225,6 @@ public:
     void growBy(int bytes) {
         growTo(m_pos + bytes);
     }
-
 
     bool atEnd() const { return m_pos >= m_lastCommand; }
 
@@ -228,30 +236,37 @@ public:
         return t;
     }
 
-    Command popCommand() const { return pop<Command>(); }
-
-    // Expands the command buffer array to contain one command and however
-    // many bytes are requested in 'additionalBytes'
-    void add(Command cmd, int additionalBytes = 0) {
-        growBy(m_pos + additionalBytes + sizeof(Command));
-        push(cmd);
+    Command popCommand() const {
+        Command cmd = pop<Command>();
+        assert(cmd < CMD_LastCommand);
+        return cmd;
     }
 
+    std::string popStdString() const {
+        unsigned int size = pop<unsigned int>();
+        std::string s((const char *) rawAtPosition(), size);
+        advance(size);
+        return s;
+    }
+
+    void push(const char *string, int length = -1) {
+        if (length < 0)
+            length = strlen(string);
+        growBy(length + sizeof(unsigned int));
+        pushString(string, length);
+    }
 
     template <typename T> void push(T x) {
-        assert(m_data.size() >= m_pos + sizeof(T));
+        if (capacity() <= m_pos + sizeof(T))
+            growBy(std::max<size_t>(sizeof(T), 4096));
         memcpy(m_data.data() + m_pos, (void *) &x, sizeof(T));
         m_pos += sizeof(T);
     }
 
-    void push(const char *string, int length) {
-        assert(m_data.size() >= m_pos + length + sizeof(int));
-        push(length);
-        memcpy(m_data.data() + m_pos, string, length);
-        m_pos += length;
+    void advance(int bytes) const {
+        m_pos += bytes;
+        assert(m_pos < capacity());
     }
-
-    void advance(int bytes) const { m_pos += bytes; }
 
     unsigned char *rawAtPosition() { return m_data.data() + m_pos; }
     const unsigned char *rawAtPosition() const { return m_data.data() + m_pos; }
@@ -269,8 +284,14 @@ public:
         }
     }
 
-
 private:
+    void pushString(const char *string, unsigned int length) {
+        assert(m_data.size() >= m_pos + length + sizeof(int));
+        push(length);
+        memcpy(m_data.data() + m_pos, string, length);
+        m_pos += length;
+    }
+
     mutable int m_pos = 0;
     int m_lastCommand = 0;
     std::vector<unsigned char> m_data;

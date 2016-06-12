@@ -37,15 +37,13 @@ class EGLSDisplayImpl;
 
 struct EGLSContextImpl
 {
-    void synchronize();
+    void flush();
+
+    template <typename T> void syncServerReply(CommandBuffer::Command replyCommand, T *value);
+    void syncServerReply(CommandBuffer::Command replyCommand, GLsizei bufSize, GLsizei *length, GLchar *string);
 
     EGLConfig config = 0;
     EGLSDisplayImpl *display = 0;
-
-    GLObjectPool shaders;
-    GLObjectPool programs;
-    GLObjectPool textures;
-    GLObjectPool buffers;
 
     CommandBuffer cmds;
 };
@@ -81,9 +79,29 @@ private:
     bool m_initialized = false;
 };
 
-inline void EGLSContextImpl::synchronize()
+inline void EGLSContextImpl::flush()
 {
     display->flush(this);
+}
+
+template <typename T>
+inline void EGLSContextImpl::syncServerReply(CommandBuffer::Command replyCommand, T *value)
+{
+    flush();
+    CommandBuffer::Command reply = cmds.popCommand();
+    assert(reply == replyCommand);
+    *value = cmds.pop<T>();
+    cmds.reset();
+}
+
+inline void EGLSContextImpl::syncServerReply(CommandBuffer::Command replyCommand, GLsizei maxSize, GLsizei *length, GLchar *string)
+{
+    flush();
+    CommandBuffer::Command reply = cmds.popCommand();
+    assert(reply == replyCommand);
+    *length = std::min(cmds.pop<GLsizei>(), maxSize);
+    memcpy(string, cmds.rawAtPosition(), *length);
+    cmds.reset();
 }
 
 

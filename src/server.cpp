@@ -34,7 +34,7 @@ Server::Server()
 
 Transport *Server::openConnection(const char *address)
 {
-    logi("Server: opening connection to: %s\n", address);
+    logi("Server: opening connection to: %s", address);
 
     Transport *transport = Transport::createServer(address);
     if (transport) {

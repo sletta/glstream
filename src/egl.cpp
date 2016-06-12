@@ -23,6 +23,8 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#define GLSTREAM_LOGGING_CONTEXT "EGL:clie"
+
 #include "egls.h"
 #include "logging.h"
 #include "transport.h"
@@ -69,7 +71,7 @@ EGLSThreadState *egls_getThreadState()
     if (!dpy                                          \
         || dpy != &egls_global_display                \
         || !egls_global_display.isInitialized()) {        \
-        printf("call failed...\n");                   \
+        printf("call failed...");                   \
         threadState->error = EGL_BAD_DISPLAY;         \
         return returnOnFail;                          \
     }
@@ -118,7 +120,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 
     EGLSDisplayImpl *display = (EGLSDisplayImpl *) dpy;
     auto &cmd(threadState->context->cmds);
-    cmd.add(CommandBuffer::CMD_SwapBuffers);
+    cmd.push(CommandBuffer::CMD_SwapBuffers);
     display->flush(threadState->context);
     cmd.reset();
     return true;
@@ -393,7 +395,7 @@ bool EGLSDisplayImpl::connectToServer()
         return false;
     }
 
-    logi("EGLDisplay: making connection to server at '%s'\n", address);
+    logi("EGLDisplay: making connection to server at '%s'", address);
     m_transport = Transport::createClient(address);
 
     return m_transport != 0;
@@ -407,9 +409,9 @@ bool EGLSDisplayImpl::flush(EGLSContextImpl *context)
     cmds.reset();
     if (!ok)
         return false;
-    logd(" - waiting for server to accept our buffer\n");
+    logd(" - waiting for server to accept our buffer");
     int bytes = m_transport->read(&cmds);
-    logd(" - server consumed buffer, returned %d bytes\n", bytes);
+    logd(" - server consumed buffer, returned %d bytes", bytes);
 
     m_transportMutex.unlock();
     return ok;

@@ -57,13 +57,13 @@ private:
 int main(int argc, char **argv)
 {
     if (!glfwInit()) {
-        logw("GLFW init failed..\n");
+        logw("GLFW init failed..");
         return 0;
     }
 
     Server server;
     if (!server.transport()) {
-        logw("failed to set up connections...\n");
+        logw("failed to set up connections...");
         return 0;
     }
 
@@ -77,13 +77,13 @@ int main(int argc, char **argv)
 
 Server::Server()
 {
-    logd("Creating GLFW Window..\n");
+    logd("Creating GLFW Window..");
     m_window = glfwCreateWindow(640, 480, "ExampleServer", nullptr, nullptr);
 
-    logd("Server setting up socket..\n");
+    logd("Server setting up socket..");
     m_transport = Transport::createServer(".glstream.socket");
 
-    m_ackBuffer.add(CommandBuffer::CMD_SwapBuffers);
+    m_ackBuffer.push(CommandBuffer::CMD_Ack);
 
 }
 
@@ -94,22 +94,22 @@ Server::~Server()
 
 void Server::run()
 {
-    logd("Server is now running\n");
+    logd("Server is now running");
     glfwMakeContextCurrent(m_window);
 
     while (!glfwWindowShouldClose(m_window))
     {
-        logd(" - read another command buffer...\n");
+        logd(" - read another command buffer...");
         m_cmds.reset();
         int bytesRead = m_transport->read(&m_cmds);
         if (bytesRead == 0) {
-            logw("failed to read a blob...\n");
+            logw("failed to read a blob...");
             return;
         }
 
         m_cmds.dump();
 
-        logd(" - processing command buffer\n");
+        logd(" - processing command buffer");
         process(m_cmds);
 
         glfwPollEvents();
@@ -125,6 +125,6 @@ void Server::swap()
 
 void Server::reply(const CommandBuffer &cmd)
 {
-    logd(" - sending reply in the middle of rendering, %d bytes\n", cmd.position());
+    logd(" - sending reply in the middle of rendering, %d bytes", cmd.position());
     m_transport->write(cmd);
 }

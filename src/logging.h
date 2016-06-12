@@ -39,6 +39,11 @@
 #define logde(format)
 #else
 
+#  ifndef GLSTREAM_LOGGING_CONTEXT
+#    define GLSTREAM_LOGGING_CONTEXT "--main--"
+#  endif
+#
+
 inline std::string log_timestring()
 {
     auto time = std::chrono::system_clock::now().time_since_epoch();
@@ -52,12 +57,12 @@ inline std::string log_timestring()
 }
 
 #  if GLSTREAM_LOGGING >= 3
-#     define logd(format, ...) { fprintf(stderr, "D [%s]: " format, log_timestring().c_str(), ##__VA_ARGS__); fflush(stderr); }
+#    define logd(format, ...) { fprintf(stderr, "D [%s] (%s): " format "\n", log_timestring().c_str(), GLSTREAM_LOGGING_CONTEXT, ##__VA_ARGS__); fflush(stderr); }
 #  endif
 #  if GLSTREAM_LOGGING >= 2
-#     define logi(format, ...) { fprintf(stderr, "I [%s]: " format, log_timestring().c_str(), ##__VA_ARGS__); fflush(stderr); }
+#    define logi(format, ...) { fprintf(stderr, "I [%s] (%s): " format "\n", log_timestring().c_str(), GLSTREAM_LOGGING_CONTEXT, ##__VA_ARGS__); fflush(stderr); }
 #  endif
 #  if GLSTREAM_LOGGING >= 1
-#     define logw(format, ...) { fprintf(stderr, "W [%s]: " format, log_timestring().c_str(), ##__VA_ARGS__); fflush(stderr); }
+#    define logw(format, ...) { fprintf(stderr, "W [%s] (%s): " format "\n", log_timestring().c_str(), GLSTREAM_LOGGING_CONTEXT, ##__VA_ARGS__); fflush(stderr); }
 #  endif
 #endif

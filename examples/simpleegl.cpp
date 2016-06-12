@@ -146,13 +146,13 @@ int main(int argc, char **argv)
     while (frame < 10) {
         int c = ++frame % 2;
 
-        logd(" -- start frame\n");
+        logd(" -- start frame");
         glClearColor(c, 0, 1-c, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        logd(" -- swapping\n");
+        logd(" -- swapping");
         ok = eglSwapBuffers(egl.display, egl.surface);
-        logd(" -- done swapping\n");
+        logd(" -- done swapping");
 
         assert(ok);
     }

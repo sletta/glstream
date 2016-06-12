@@ -43,7 +43,25 @@ public:
     virtual void reply(const CommandBuffer &buffer) { };
 
 protected:
-    FlatMap<GLuint, GLuint> m_shaders;
+    template <typename T> void sendReply(CommandBuffer::Command cmd, T value);
+    void sendReply(CommandBuffer::Command cmd, const char *string, int length);
 
     CommandBuffer m_reply;
 };
+
+template <typename T> void Replayer::sendReply(CommandBuffer::Command cmd, T value)
+{
+    m_reply.push(cmd);
+    m_reply.push(value);
+    reply(m_reply);
+    m_reply.reset();
+}
+
+inline void Replayer::sendReply(CommandBuffer::Command cmd, const char *string, int length)
+{
+    m_reply.push(cmd);
+    m_reply.push(string, length);
+    reply(m_reply);
+    m_reply.reset();
+}
+

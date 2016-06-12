@@ -23,6 +23,9 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#define GLSTREAM_LOGGING_CONTEXT "netw:uds"
+
+
 #include "transport.h"
 #include "logging.h"
 
@@ -91,7 +94,7 @@ Transport *Transport::createServer(const char *address)
     unlink(address);
 
     if (!server->connect(address)) {
-        logw("Transport: server failed to connect, socket=%d, serverSocket=%d, address=%s, error=%s\n",
+        logw("Transport: server failed to connect, socket=%d, serverSocket=%d, address=%s, error=%s",
              server->m_socket,
              server->m_serverSocket,
              address,
@@ -99,7 +102,7 @@ Transport *Transport::createServer(const char *address)
         return nullptr;
     }
 
-    logi("Transport: connection established with client, address=%s, socket=%d, serverSocket=%d\n",
+    logi("Transport: connection established with client, address=%s, socket=%d, serverSocket=%d",
          address,
          server->m_socket,
          server->m_serverSocket);
@@ -113,14 +116,14 @@ Transport *Transport::createClient(const char *address)
     std::unique_ptr<ClientSocket> client(new ClientSocket());
 
     if (!client->connect(address)) {
-        logw("Transport: cient failed to connect, socket=%d, address=%s, error=%s\n",
+        logw("Transport: cient failed to connect, socket=%d, address=%s, error=%s",
              client->socket(),
              address,
              strerror(errno));
         return nullptr;
     }
 
-    logi("Transport: connection established to server, address=%s, socket=%d\n",
+    logi("Transport: connection established to server, address=%s, socket=%d",
          address,
          client->socket());
 
@@ -139,20 +142,21 @@ int UnixDomainSocket::read(CommandBuffer *buffer)
 
     int size = 0;
     if (::read(m_socket, &size, sizeof(int)) != sizeof(int)) {
-        logw("Transport: failed to read size from socket\n");
+        logw("Transport: failed to read size from socket");
         buffer->reset();
         return 0;
     }
 
-    // logd("Transport: read pending=%d, bufferSize=%d\n", size, (int) buffer->size());
+    logd("Transport: read pending=%d", size);
     buffer->growTo(size);
 
     int count = ::read(m_socket, buffer->rawAtStart(), size);
     if (count != size) {
-        logw("Transport: read failed, read=%d, expected=%d\n", count, size);
+        logw("Transport: read failed, read=%d, expected=%d", count, size);
         buffer->reset();
         return 0;
     }
+    buffer->setLastCommand(size);
 
     return size;
 }
@@ -162,16 +166,16 @@ int UnixDomainSocket::write(const CommandBuffer &buffer)
     int size = buffer.position();
 
     if (::write(m_socket, &size, sizeof(int)) != sizeof(int)) {
-        logw("Transport: failed to write size to socket\n");
+        logw("Transport: failed to write size to socket");
         return 0;
     }
 
     if (::write(m_socket, buffer.rawAtStart(), size) != size) {
-        logw("Transport: failed to write buffer to socket..\n");
+        logw("Transport: failed to write buffer to socket..");
         return 0;
     }
 
-    // logd("Transport: wrote %d bytes...\n", size);
+    logd("Transport: wrote %d bytes...", size);
 
     return size;
 }
@@ -188,19 +192,19 @@ bool ServerSocket::connect(const char *address)
     sockaddr_un addr = transport_sockaddrForAddress(address);
 
     if (bind(m_serverSocket, (sockaddr *) &addr, sizeof(addr)) != 0) {
-        logd(" - failed to bind..\n");
+        logd(" - failed to bind..");
         return false;
     }
 
     if (listen(m_serverSocket, 0) != 0) {
-        logd(" - failed to listen..\n");
+        logd(" - failed to listen..");
         return false;
     }
 
-    logi("Transport: awaiting connection on address=%s, socket=%d\n", address, m_socket);
+    logi("Transport: awaiting connection on address=%s, socket=%d", address, m_socket);
     m_socket = accept(m_serverSocket, 0, 0);
     if (m_socket <= 0) {
-        logd(" - failed to accept\n");
+        logd(" - failed to accept");
         return false;
     }
 
@@ -218,7 +222,7 @@ bool ClientSocket::connect(const char *address)
 {
     sockaddr_un addr = transport_sockaddrForAddress(address);
     if (::connect(m_socket, (sockaddr *) &addr, sizeof(addr)) != 0) {
-        logd(" - connection failed..\n");
+        logd(" - connection failed..");
         return false;
     }
 
