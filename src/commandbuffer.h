@@ -187,6 +187,7 @@ public:
         CMD_SwapBuffers = 1000,
 
         CMD_Reply_FirstReply,
+        CMD_Reply_glGenBuffers,
         CMD_Reply_glCreateProgram,
         CMD_Reply_glCreateShader,
         CMD_Reply_glGetError,
@@ -218,8 +219,10 @@ public:
 
     // Expand the command buffer to contain 'bytes' more bytes
     void growTo(int totalSize) {
-        if (m_data.size() < totalSize)
+        if (m_data.size() < totalSize) {
+            totalSize = ((totalSize >> 12) + 1) << 12;
             m_data.resize(totalSize);
+        }
     }
 
     void growBy(int bytes) {
@@ -249,16 +252,23 @@ public:
         return s;
     }
 
-    void push(const char *string, int length = -1) {
-        if (length < 0)
-            length = strlen(string);
-        growBy(length + sizeof(unsigned int));
-        pushString(string, length);
+    template <typename T> unsigned int popArray(T **array) const {
+        unsigned int size = pop<unsigned int>();
+        std::cout << " - array size: " << size << std::endl;
+        *array = (T *) rawAtPosition();
+        advance(sizeof(T) * size);
+        return size;
+    }
+
+    template <typename T> void push(const T *array, unsigned int size) {
+        growBy(size + sizeof(unsigned int));
+        push(size);
+        memcpy(m_data.data() + m_pos, array, size);
+        m_pos += size;
     }
 
     template <typename T> void push(T x) {
-        if (capacity() <= m_pos + sizeof(T))
-            growBy(std::max<size_t>(sizeof(T), 4096));
+        growBy(sizeof(T));
         memcpy(m_data.data() + m_pos, (void *) &x, sizeof(T));
         m_pos += sizeof(T);
     }
@@ -285,13 +295,6 @@ public:
     }
 
 private:
-    void pushString(const char *string, unsigned int length) {
-        assert(m_data.size() >= m_pos + length + sizeof(int));
-        push(length);
-        memcpy(m_data.data() + m_pos, string, length);
-        m_pos += length;
-    }
-
     mutable int m_pos = 0;
     int m_lastCommand = 0;
     std::vector<unsigned char> m_data;

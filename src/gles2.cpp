@@ -75,7 +75,7 @@ extern "C" GL_APICALL void GL_APIENTRY glBindAttribLocation (GLuint program, GLu
     cmd.push(CommandBuffer::CMD_glBindAttribLocation);
     cmd.push(program);
     cmd.push(index);
-    cmd.push((const char *) name);
+    cmd.push((const char *) name, strlen(name));
 
     END_GLES2_FUNCTION;
 }
@@ -109,6 +109,8 @@ extern "C" GL_APICALL void GL_APIENTRY glBindFramebuffer (GLenum target, GLuint 
 
 extern "C" GL_APICALL void GL_APIENTRY glBindRenderbuffer (GLenum target, GLuint renderbuffer)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glBindRenderbuffer);
     END_GLES2_FUNCTION;
@@ -116,6 +118,8 @@ extern "C" GL_APICALL void GL_APIENTRY glBindRenderbuffer (GLenum target, GLuint
 
 extern "C" GL_APICALL void GL_APIENTRY glBindTexture (GLenum target, GLuint texture)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glBindTexture);
     END_GLES2_FUNCTION;
@@ -123,6 +127,8 @@ extern "C" GL_APICALL void GL_APIENTRY glBindTexture (GLenum target, GLuint text
 
 extern "C" GL_APICALL void GL_APIENTRY glBlendColor (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glBlendColor);
     END_GLES2_FUNCTION;
@@ -130,6 +136,8 @@ extern "C" GL_APICALL void GL_APIENTRY glBlendColor (GLfloat red, GLfloat green,
 
 extern "C" GL_APICALL void GL_APIENTRY glBlendEquation (GLenum mode)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glBlendEquation);
     END_GLES2_FUNCTION;
@@ -137,6 +145,8 @@ extern "C" GL_APICALL void GL_APIENTRY glBlendEquation (GLenum mode)
 
 extern "C" GL_APICALL void GL_APIENTRY glBlendEquationSeparate (GLenum modeRGB, GLenum modeAlpha)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glBlendEquationSeparate);
     END_GLES2_FUNCTION;
@@ -144,6 +154,7 @@ extern "C" GL_APICALL void GL_APIENTRY glBlendEquationSeparate (GLenum modeRGB, 
 
 extern "C" GL_APICALL void GL_APIENTRY glBlendFunc (GLenum sfactor, GLenum dfactor)
 {
+    logd("glBlendFunc(%x, %x)", sfactor, dfactor);
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glBlendFunc);
     END_GLES2_FUNCTION;
@@ -151,6 +162,7 @@ extern "C" GL_APICALL void GL_APIENTRY glBlendFunc (GLenum sfactor, GLenum dfact
 
 extern "C" GL_APICALL void GL_APIENTRY glBlendFuncSeparate (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
 {
+    logd("glBlendFuncSeparate(%x, %x, %x, %x)", sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glBlendFuncSeparate);
     END_GLES2_FUNCTION;
@@ -158,13 +170,20 @@ extern "C" GL_APICALL void GL_APIENTRY glBlendFuncSeparate (GLenum sfactorRGB, G
 
 extern "C" GL_APICALL void GL_APIENTRY glBufferData (GLenum target, GLsizeiptr size, const void *data, GLenum usage)
 {
+    logd("glBufferData(%x, %d, %p, %x)", target, (int) size, data, usage);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glBufferData);
+    cmd.push(target);
+    cmd.push((const char *) data, size);
+    cmd.push(usage);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size, const void *data)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glBufferSubData);
     END_GLES2_FUNCTION;
@@ -172,6 +191,8 @@ extern "C" GL_APICALL void GL_APIENTRY glBufferSubData (GLenum target, GLintptr 
 
 extern "C" GL_APICALL GLenum GL_APIENTRY glCheckFramebufferStatus (GLenum target)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glCheckFramebufferStatus);
     END_GLES2_FUNCTION;
@@ -207,6 +228,8 @@ extern "C" GL_APICALL void GL_APIENTRY glClearColor(GLfloat r, GLfloat g, GLfloa
 
 extern "C" GL_APICALL void GL_APIENTRY glClearDepthf (GLfloat d)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glClearDepthf);
     END_GLES2_FUNCTION;
@@ -214,6 +237,8 @@ extern "C" GL_APICALL void GL_APIENTRY glClearDepthf (GLfloat d)
 
 extern "C" GL_APICALL void GL_APIENTRY glClearStencil (GLint s)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glClearStencil);
     END_GLES2_FUNCTION;
@@ -221,6 +246,8 @@ extern "C" GL_APICALL void GL_APIENTRY glClearStencil (GLint s)
 
 extern "C" GL_APICALL void GL_APIENTRY glColorMask (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glColorMask);
     END_GLES2_FUNCTION;
@@ -228,6 +255,8 @@ extern "C" GL_APICALL void GL_APIENTRY glColorMask (GLboolean red, GLboolean gre
 
 extern "C" GL_APICALL void GL_APIENTRY glCompileShader (GLuint shader)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glCompileShader);
     cmd.push(shader);
@@ -236,6 +265,8 @@ extern "C" GL_APICALL void GL_APIENTRY glCompileShader (GLuint shader)
 
 extern "C" GL_APICALL void GL_APIENTRY glCompressedTexImage2D (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glCompressedTexImage2D);
     END_GLES2_FUNCTION;
@@ -243,6 +274,8 @@ extern "C" GL_APICALL void GL_APIENTRY glCompressedTexImage2D (GLenum target, GL
 
 extern "C" GL_APICALL void GL_APIENTRY glCompressedTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glCompressedTexSubImage2D);
     END_GLES2_FUNCTION;
@@ -250,6 +283,8 @@ extern "C" GL_APICALL void GL_APIENTRY glCompressedTexSubImage2D (GLenum target,
 
 extern "C" GL_APICALL void GL_APIENTRY glCopyTexImage2D (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glCopyTexImage2D);
     END_GLES2_FUNCTION;
@@ -257,6 +292,8 @@ extern "C" GL_APICALL void GL_APIENTRY glCopyTexImage2D (GLenum target, GLint le
 
 extern "C" GL_APICALL void GL_APIENTRY glCopyTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glCopyTexSubImage2D);
     END_GLES2_FUNCTION;
@@ -299,6 +336,7 @@ extern "C" GL_APICALL GLuint GL_APIENTRY glCreateShader(GLenum type)
 
 extern "C" GL_APICALL void GL_APIENTRY glCullFace (GLenum mode)
 {
+    logd("%s", __PRETTY_FUNCTION__);
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glCullFace);
     END_GLES2_FUNCTION;
@@ -306,6 +344,7 @@ extern "C" GL_APICALL void GL_APIENTRY glCullFace (GLenum mode)
 
 extern "C" GL_APICALL void GL_APIENTRY glDeleteBuffers (GLsizei n, const GLuint *buffers)
 {
+    logd("%s", __PRETTY_FUNCTION__);
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDeleteBuffers);
     END_GLES2_FUNCTION;
@@ -313,6 +352,7 @@ extern "C" GL_APICALL void GL_APIENTRY glDeleteBuffers (GLsizei n, const GLuint 
 
 extern "C" GL_APICALL void GL_APIENTRY glDeleteFramebuffers (GLsizei n, const GLuint *framebuffers)
 {
+    logd("%s", __PRETTY_FUNCTION__);
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDeleteFramebuffers);
     END_GLES2_FUNCTION;
@@ -327,6 +367,8 @@ extern "C" GL_APICALL void GL_APIENTRY glDeleteProgram (GLuint program)
 
 extern "C" GL_APICALL void GL_APIENTRY glDeleteRenderbuffers (GLsizei n, const GLuint *renderbuffers)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDeleteRenderbuffers);
     END_GLES2_FUNCTION;
@@ -334,6 +376,8 @@ extern "C" GL_APICALL void GL_APIENTRY glDeleteRenderbuffers (GLsizei n, const G
 
 extern "C" GL_APICALL void GL_APIENTRY glDeleteShader (GLuint shader)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDeleteShader);
     END_GLES2_FUNCTION;
@@ -341,6 +385,8 @@ extern "C" GL_APICALL void GL_APIENTRY glDeleteShader (GLuint shader)
 
 extern "C" GL_APICALL void GL_APIENTRY glDeleteTextures (GLsizei n, const GLuint *textures)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDeleteTextures);
     END_GLES2_FUNCTION;
@@ -348,6 +394,8 @@ extern "C" GL_APICALL void GL_APIENTRY glDeleteTextures (GLsizei n, const GLuint
 
 extern "C" GL_APICALL void GL_APIENTRY glDepthFunc (GLenum func)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDepthFunc);
     END_GLES2_FUNCTION;
@@ -355,6 +403,8 @@ extern "C" GL_APICALL void GL_APIENTRY glDepthFunc (GLenum func)
 
 extern "C" GL_APICALL void GL_APIENTRY glDepthMask (GLboolean flag)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDepthMask);
     END_GLES2_FUNCTION;
@@ -362,6 +412,8 @@ extern "C" GL_APICALL void GL_APIENTRY glDepthMask (GLboolean flag)
 
 extern "C" GL_APICALL void GL_APIENTRY glDepthRangef (GLfloat n, GLfloat f)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDepthRangef);
     END_GLES2_FUNCTION;
@@ -369,6 +421,8 @@ extern "C" GL_APICALL void GL_APIENTRY glDepthRangef (GLfloat n, GLfloat f)
 
 extern "C" GL_APICALL void GL_APIENTRY glDetachShader (GLuint program, GLuint shader)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDetachShader);
     END_GLES2_FUNCTION;
@@ -376,20 +430,27 @@ extern "C" GL_APICALL void GL_APIENTRY glDetachShader (GLuint program, GLuint sh
 
 extern "C" GL_APICALL void GL_APIENTRY glDisable (GLenum cap)
 {
+    logd("glDisable(%x)", cap);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDisable);
+    cmd.push(cap);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glDisableVertexAttribArray (GLuint index)
 {
+    logd("glDisableVertexAttribArray(%d)", index);
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDisableVertexAttribArray);
+    cmd.push(index);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glDrawArrays (GLenum mode, GLint first, GLsizei count)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDrawArrays);
     END_GLES2_FUNCTION;
@@ -397,6 +458,8 @@ extern "C" GL_APICALL void GL_APIENTRY glDrawArrays (GLenum mode, GLint first, G
 
 extern "C" GL_APICALL void GL_APIENTRY glDrawElements (GLenum mode, GLsizei count, GLenum type, const void *indices)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glDrawElements);
     END_GLES2_FUNCTION;
@@ -404,20 +467,26 @@ extern "C" GL_APICALL void GL_APIENTRY glDrawElements (GLenum mode, GLsizei coun
 
 extern "C" GL_APICALL void GL_APIENTRY glEnable (GLenum cap)
 {
+    logd("glEnable(%x)", cap);
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glEnable);
+    cmd.push(cap);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glEnableVertexAttribArray (GLuint index)
 {
+    logd("glEnableVertexAttribArray(%d)", index);
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glEnableVertexAttribArray);
+    cmd.push(index);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glFinish (void)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glFinish);
     END_GLES2_FUNCTION;
@@ -425,6 +494,8 @@ extern "C" GL_APICALL void GL_APIENTRY glFinish (void)
 
 extern "C" GL_APICALL void GL_APIENTRY glFlush (void)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glFlush);
     END_GLES2_FUNCTION;
@@ -432,6 +503,8 @@ extern "C" GL_APICALL void GL_APIENTRY glFlush (void)
 
 extern "C" GL_APICALL void GL_APIENTRY glFramebufferRenderbuffer (GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glFramebufferRenderbuffer);
     END_GLES2_FUNCTION;
@@ -439,6 +512,8 @@ extern "C" GL_APICALL void GL_APIENTRY glFramebufferRenderbuffer (GLenum target,
 
 extern "C" GL_APICALL void GL_APIENTRY glFramebufferTexture2D (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glFramebufferTexture2D);
     END_GLES2_FUNCTION;
@@ -446,6 +521,8 @@ extern "C" GL_APICALL void GL_APIENTRY glFramebufferTexture2D (GLenum target, GL
 
 extern "C" GL_APICALL void GL_APIENTRY glFrontFace (GLenum mode)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glFrontFace);
     END_GLES2_FUNCTION;
@@ -453,13 +530,24 @@ extern "C" GL_APICALL void GL_APIENTRY glFrontFace (GLenum mode)
 
 extern "C" GL_APICALL void GL_APIENTRY glGenBuffers (GLsizei n, GLuint *buffers)
 {
+    logd("%s(%d, ..)", __func__, n);
+
     BEGIN_GLES2_FUNCTION;
+
     cmd.push(CommandBuffer::CMD_glGenBuffers);
+    cmd.push(n);
+    // ### it might be more buffers...
+
+    context->syncServerReply(CommandBuffer::CMD_Reply_glGenBuffers, buffers);
+    logd(" -> %d", *buffers);
+
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glGenerateMipmap (GLenum target)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGenerateMipmap);
     END_GLES2_FUNCTION;
@@ -467,6 +555,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGenerateMipmap (GLenum target)
 
 extern "C" GL_APICALL void GL_APIENTRY glGenFramebuffers (GLsizei n, GLuint *framebuffers)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGenFramebuffers);
     END_GLES2_FUNCTION;
@@ -474,6 +564,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGenFramebuffers (GLsizei n, GLuint *fra
 
 extern "C" GL_APICALL void GL_APIENTRY glGenRenderbuffers (GLsizei n, GLuint *renderbuffers)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGenRenderbuffers);
     END_GLES2_FUNCTION;
@@ -481,6 +573,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGenRenderbuffers (GLsizei n, GLuint *re
 
 extern "C" GL_APICALL void GL_APIENTRY glGenTextures (GLsizei n, GLuint *textures)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGenTextures);
     END_GLES2_FUNCTION;
@@ -488,6 +582,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGenTextures (GLsizei n, GLuint *texture
 
 extern "C" GL_APICALL void GL_APIENTRY glGetActiveAttrib (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetActiveAttrib);
     END_GLES2_FUNCTION;
@@ -495,6 +591,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetActiveAttrib (GLuint program, GLuint
 
 extern "C" GL_APICALL void GL_APIENTRY glGetActiveUniform (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetActiveUniform);
     END_GLES2_FUNCTION;
@@ -502,6 +600,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetActiveUniform (GLuint program, GLuin
 
 extern "C" GL_APICALL void GL_APIENTRY glGetAttachedShaders (GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetAttachedShaders);
     END_GLES2_FUNCTION;
@@ -509,6 +609,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetAttachedShaders (GLuint program, GLs
 
 extern "C" GL_APICALL GLint GL_APIENTRY glGetAttribLocation (GLuint program, const GLchar *name)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetAttribLocation);
     END_GLES2_FUNCTION;
@@ -517,6 +619,8 @@ extern "C" GL_APICALL GLint GL_APIENTRY glGetAttribLocation (GLuint program, con
 
 extern "C" GL_APICALL void GL_APIENTRY glGetBooleanv (GLenum pname, GLboolean *data)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetBooleanv);
     END_GLES2_FUNCTION;
@@ -524,6 +628,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetBooleanv (GLenum pname, GLboolean *d
 
 extern "C" GL_APICALL void GL_APIENTRY glGetBufferParameteriv (GLenum target, GLenum pname, GLint *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetBufferParameteriv);
     END_GLES2_FUNCTION;
@@ -548,6 +654,8 @@ extern "C" GL_APICALL GLenum GL_APIENTRY glGetError (void)
 
 extern "C" GL_APICALL void GL_APIENTRY glGetFloatv (GLenum pname, GLfloat *data)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetFloatv);
     END_GLES2_FUNCTION;
@@ -555,6 +663,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetFloatv (GLenum pname, GLfloat *data)
 
 extern "C" GL_APICALL void GL_APIENTRY glGetFramebufferAttachmentParameteriv (GLenum target, GLenum attachment, GLenum pname, GLint *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetFramebufferAttachmentParameteriv);
     END_GLES2_FUNCTION;
@@ -562,6 +672,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetFramebufferAttachmentParameteriv (GL
 
 extern "C" GL_APICALL void GL_APIENTRY glGetIntegerv (GLenum pname, GLint *data)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetIntegerv);
     END_GLES2_FUNCTION;
@@ -646,6 +758,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetShaderInfoLog (GLuint shader, GLsize
 
 extern "C" GL_APICALL void GL_APIENTRY glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetShaderPrecisionFormat);
     END_GLES2_FUNCTION;
@@ -653,6 +767,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetShaderPrecisionFormat (GLenum shader
 
 extern "C" GL_APICALL void GL_APIENTRY glGetShaderSource (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetShaderSource);
     END_GLES2_FUNCTION;
@@ -660,6 +776,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetShaderSource (GLuint shader, GLsizei
 
 extern "C" GL_APICALL const GLubyte *GL_APIENTRY glGetString (GLenum name)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetString);
     END_GLES2_FUNCTION;
@@ -668,6 +786,8 @@ extern "C" GL_APICALL const GLubyte *GL_APIENTRY glGetString (GLenum name)
 
 extern "C" GL_APICALL void GL_APIENTRY glGetTexParameterfv (GLenum target, GLenum pname, GLfloat *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetTexParameterfv);
     END_GLES2_FUNCTION;
@@ -675,6 +795,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetTexParameterfv (GLenum target, GLenu
 
 extern "C" GL_APICALL void GL_APIENTRY glGetTexParameteriv (GLenum target, GLenum pname, GLint *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetTexParameteriv);
     END_GLES2_FUNCTION;
@@ -682,6 +804,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetTexParameteriv (GLenum target, GLenu
 
 extern "C" GL_APICALL void GL_APIENTRY glGetUniformfv (GLuint program, GLint location, GLfloat *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetUniformfv);
     END_GLES2_FUNCTION;
@@ -689,6 +813,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetUniformfv (GLuint program, GLint loc
 
 extern "C" GL_APICALL void GL_APIENTRY glGetUniformiv (GLuint program, GLint location, GLint *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetUniformiv);
     END_GLES2_FUNCTION;
@@ -696,6 +822,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetUniformiv (GLuint program, GLint loc
 
 extern "C" GL_APICALL GLint GL_APIENTRY glGetUniformLocation (GLuint program, const GLchar *name)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetUniformLocation);
     END_GLES2_FUNCTION;
@@ -704,6 +832,8 @@ extern "C" GL_APICALL GLint GL_APIENTRY glGetUniformLocation (GLuint program, co
 
 extern "C" GL_APICALL void GL_APIENTRY glGetVertexAttribfv (GLuint index, GLenum pname, GLfloat *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetVertexAttribfv);
     END_GLES2_FUNCTION;
@@ -711,6 +841,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetVertexAttribfv (GLuint index, GLenum
 
 extern "C" GL_APICALL void GL_APIENTRY glGetVertexAttribiv (GLuint index, GLenum pname, GLint *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetVertexAttribiv);
     END_GLES2_FUNCTION;
@@ -718,6 +850,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetVertexAttribiv (GLuint index, GLenum
 
 extern "C" GL_APICALL void GL_APIENTRY glGetVertexAttribPointerv (GLuint index, GLenum pname, void **pointer)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetVertexAttribPointerv);
     END_GLES2_FUNCTION;
@@ -725,6 +859,8 @@ extern "C" GL_APICALL void GL_APIENTRY glGetVertexAttribPointerv (GLuint index, 
 
 extern "C" GL_APICALL void GL_APIENTRY glHint (GLenum target, GLenum mode)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glHint);
     END_GLES2_FUNCTION;
@@ -732,6 +868,8 @@ extern "C" GL_APICALL void GL_APIENTRY glHint (GLenum target, GLenum mode)
 
 extern "C" GL_APICALL GLboolean GL_APIENTRY glIsBuffer (GLuint buffer)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glIsBuffer);
     END_GLES2_FUNCTION;
@@ -740,6 +878,8 @@ extern "C" GL_APICALL GLboolean GL_APIENTRY glIsBuffer (GLuint buffer)
 
 extern "C" GL_APICALL GLboolean GL_APIENTRY glIsEnabled (GLenum cap)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glIsEnabled);
     END_GLES2_FUNCTION;
@@ -748,6 +888,8 @@ extern "C" GL_APICALL GLboolean GL_APIENTRY glIsEnabled (GLenum cap)
 
 extern "C" GL_APICALL GLboolean GL_APIENTRY glIsFramebuffer (GLuint framebuffer)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glIsFramebuffer);
     END_GLES2_FUNCTION;
@@ -756,6 +898,8 @@ extern "C" GL_APICALL GLboolean GL_APIENTRY glIsFramebuffer (GLuint framebuffer)
 
 extern "C" GL_APICALL GLboolean GL_APIENTRY glIsProgram (GLuint program)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glIsProgram);
     END_GLES2_FUNCTION;
@@ -764,6 +908,8 @@ extern "C" GL_APICALL GLboolean GL_APIENTRY glIsProgram (GLuint program)
 
 extern "C" GL_APICALL GLboolean GL_APIENTRY glIsRenderbuffer (GLuint renderbuffer)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glIsRenderbuffer);
     END_GLES2_FUNCTION;
@@ -772,6 +918,8 @@ extern "C" GL_APICALL GLboolean GL_APIENTRY glIsRenderbuffer (GLuint renderbuffe
 
 extern "C" GL_APICALL GLboolean GL_APIENTRY glIsShader (GLuint shader)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glIsShader);
     END_GLES2_FUNCTION;
@@ -780,6 +928,8 @@ extern "C" GL_APICALL GLboolean GL_APIENTRY glIsShader (GLuint shader)
 
 extern "C" GL_APICALL GLboolean GL_APIENTRY glIsTexture (GLuint texture)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glIsTexture);
     END_GLES2_FUNCTION;
@@ -788,6 +938,8 @@ extern "C" GL_APICALL GLboolean GL_APIENTRY glIsTexture (GLuint texture)
 
 extern "C" GL_APICALL void GL_APIENTRY glLineWidth (GLfloat width)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glLineWidth);
     END_GLES2_FUNCTION;
@@ -807,6 +959,8 @@ extern "C" GL_APICALL void GL_APIENTRY glLinkProgram (GLuint program)
 
 extern "C" GL_APICALL void GL_APIENTRY glPixelStorei (GLenum pname, GLint param)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glPixelStorei);
     END_GLES2_FUNCTION;
@@ -814,6 +968,8 @@ extern "C" GL_APICALL void GL_APIENTRY glPixelStorei (GLenum pname, GLint param)
 
 extern "C" GL_APICALL void GL_APIENTRY glPolygonOffset (GLfloat factor, GLfloat units)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glPolygonOffset);
     END_GLES2_FUNCTION;
@@ -821,6 +977,8 @@ extern "C" GL_APICALL void GL_APIENTRY glPolygonOffset (GLfloat factor, GLfloat 
 
 extern "C" GL_APICALL void GL_APIENTRY glReadPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glReadPixels);
     END_GLES2_FUNCTION;
@@ -828,6 +986,8 @@ extern "C" GL_APICALL void GL_APIENTRY glReadPixels (GLint x, GLint y, GLsizei w
 
 extern "C" GL_APICALL void GL_APIENTRY glReleaseShaderCompiler (void)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glReleaseShaderCompiler);
     END_GLES2_FUNCTION;
@@ -835,6 +995,8 @@ extern "C" GL_APICALL void GL_APIENTRY glReleaseShaderCompiler (void)
 
 extern "C" GL_APICALL void GL_APIENTRY glRenderbufferStorage (GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glRenderbufferStorage);
     END_GLES2_FUNCTION;
@@ -842,6 +1004,8 @@ extern "C" GL_APICALL void GL_APIENTRY glRenderbufferStorage (GLenum target, GLe
 
 extern "C" GL_APICALL void GL_APIENTRY glSampleCoverage (GLfloat value, GLboolean invert)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glSampleCoverage);
     END_GLES2_FUNCTION;
@@ -849,6 +1013,8 @@ extern "C" GL_APICALL void GL_APIENTRY glSampleCoverage (GLfloat value, GLboolea
 
 extern "C" GL_APICALL void GL_APIENTRY glScissor (GLint x, GLint y, GLsizei width, GLsizei height)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glScissor);
     END_GLES2_FUNCTION;
@@ -856,6 +1022,8 @@ extern "C" GL_APICALL void GL_APIENTRY glScissor (GLint x, GLint y, GLsizei widt
 
 extern "C" GL_APICALL void GL_APIENTRY glShaderBinary (GLsizei count, const GLuint *shaders, GLenum binaryformat, const void *binary, GLsizei length)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glShaderBinary);
     END_GLES2_FUNCTION;
@@ -876,6 +1044,8 @@ extern "C" GL_APICALL void GL_APIENTRY glShaderSource (GLuint shader, GLsizei co
 
 extern "C" GL_APICALL void GL_APIENTRY glStencilFunc (GLenum func, GLint ref, GLuint mask)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glStencilFunc);
     END_GLES2_FUNCTION;
@@ -883,6 +1053,8 @@ extern "C" GL_APICALL void GL_APIENTRY glStencilFunc (GLenum func, GLint ref, GL
 
 extern "C" GL_APICALL void GL_APIENTRY glStencilFuncSeparate (GLenum face, GLenum func, GLint ref, GLuint mask)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glStencilFuncSeparate);
     END_GLES2_FUNCTION;
@@ -890,6 +1062,8 @@ extern "C" GL_APICALL void GL_APIENTRY glStencilFuncSeparate (GLenum face, GLenu
 
 extern "C" GL_APICALL void GL_APIENTRY glStencilMask (GLuint mask)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glStencilMask);
     END_GLES2_FUNCTION;
@@ -897,6 +1071,8 @@ extern "C" GL_APICALL void GL_APIENTRY glStencilMask (GLuint mask)
 
 extern "C" GL_APICALL void GL_APIENTRY glStencilMaskSeparate (GLenum face, GLuint mask)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glStencilMaskSeparate);
     END_GLES2_FUNCTION;
@@ -904,6 +1080,8 @@ extern "C" GL_APICALL void GL_APIENTRY glStencilMaskSeparate (GLenum face, GLuin
 
 extern "C" GL_APICALL void GL_APIENTRY glStencilOp (GLenum fail, GLenum zfail, GLenum zpass)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glStencilOp);
     END_GLES2_FUNCTION;
@@ -911,6 +1089,8 @@ extern "C" GL_APICALL void GL_APIENTRY glStencilOp (GLenum fail, GLenum zfail, G
 
 extern "C" GL_APICALL void GL_APIENTRY glStencilOpSeparate (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glStencilOpSeparate);
     END_GLES2_FUNCTION;
@@ -918,6 +1098,8 @@ extern "C" GL_APICALL void GL_APIENTRY glStencilOpSeparate (GLenum face, GLenum 
 
 extern "C" GL_APICALL void GL_APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glTexImage2D);
     END_GLES2_FUNCTION;
@@ -925,6 +1107,8 @@ extern "C" GL_APICALL void GL_APIENTRY glTexImage2D (GLenum target, GLint level,
 
 extern "C" GL_APICALL void GL_APIENTRY glTexParameterf (GLenum target, GLenum pname, GLfloat param)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glTexParameterf);
     END_GLES2_FUNCTION;
@@ -932,6 +1116,8 @@ extern "C" GL_APICALL void GL_APIENTRY glTexParameterf (GLenum target, GLenum pn
 
 extern "C" GL_APICALL void GL_APIENTRY glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glTexParameterfv);
     END_GLES2_FUNCTION;
@@ -939,6 +1125,8 @@ extern "C" GL_APICALL void GL_APIENTRY glTexParameterfv (GLenum target, GLenum p
 
 extern "C" GL_APICALL void GL_APIENTRY glTexParameteri (GLenum target, GLenum pname, GLint param)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glTexParameteri);
     END_GLES2_FUNCTION;
@@ -946,6 +1134,8 @@ extern "C" GL_APICALL void GL_APIENTRY glTexParameteri (GLenum target, GLenum pn
 
 extern "C" GL_APICALL void GL_APIENTRY glTexParameteriv (GLenum target, GLenum pname, const GLint *params)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glTexParameteriv);
     END_GLES2_FUNCTION;
@@ -953,6 +1143,8 @@ extern "C" GL_APICALL void GL_APIENTRY glTexParameteriv (GLenum target, GLenum p
 
 extern "C" GL_APICALL void GL_APIENTRY glTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glTexSubImage2D);
     END_GLES2_FUNCTION;
@@ -960,6 +1152,8 @@ extern "C" GL_APICALL void GL_APIENTRY glTexSubImage2D (GLenum target, GLint lev
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform1f (GLint location, GLfloat v0)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform1f);
     END_GLES2_FUNCTION;
@@ -967,6 +1161,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform1f (GLint location, GLfloat v0)
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform1fv (GLint location, GLsizei count, const GLfloat *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform1fv);
     END_GLES2_FUNCTION;
@@ -974,6 +1170,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform1fv (GLint location, GLsizei cou
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform1i (GLint location, GLint v0)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform1i);
     END_GLES2_FUNCTION;
@@ -981,6 +1179,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform1i (GLint location, GLint v0)
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform1iv (GLint location, GLsizei count, const GLint *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform1iv);
     END_GLES2_FUNCTION;
@@ -988,6 +1188,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform1iv (GLint location, GLsizei cou
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform2f (GLint location, GLfloat v0, GLfloat v1)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform2f);
     END_GLES2_FUNCTION;
@@ -995,6 +1197,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform2f (GLint location, GLfloat v0, 
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform2fv (GLint location, GLsizei count, const GLfloat *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform2fv);
     END_GLES2_FUNCTION;
@@ -1002,6 +1206,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform2fv (GLint location, GLsizei cou
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform2i (GLint location, GLint v0, GLint v1)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform2i);
     END_GLES2_FUNCTION;
@@ -1009,6 +1215,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform2i (GLint location, GLint v0, GL
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform2iv (GLint location, GLsizei count, const GLint *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform2iv);
     END_GLES2_FUNCTION;
@@ -1016,6 +1224,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform2iv (GLint location, GLsizei cou
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform3f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform3f);
     END_GLES2_FUNCTION;
@@ -1023,6 +1233,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform3f (GLint location, GLfloat v0, 
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform3fv (GLint location, GLsizei count, const GLfloat *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform3fv);
     END_GLES2_FUNCTION;
@@ -1030,6 +1242,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform3fv (GLint location, GLsizei cou
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform3i (GLint location, GLint v0, GLint v1, GLint v2)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform3i);
     END_GLES2_FUNCTION;
@@ -1037,6 +1251,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform3i (GLint location, GLint v0, GL
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform3iv (GLint location, GLsizei count, const GLint *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform3iv);
     END_GLES2_FUNCTION;
@@ -1044,6 +1260,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform3iv (GLint location, GLsizei cou
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform4f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform4f);
     END_GLES2_FUNCTION;
@@ -1051,6 +1269,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform4f (GLint location, GLfloat v0, 
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform4fv (GLint location, GLsizei count, const GLfloat *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform4fv);
     END_GLES2_FUNCTION;
@@ -1058,6 +1278,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform4fv (GLint location, GLsizei cou
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform4i (GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform4i);
     END_GLES2_FUNCTION;
@@ -1065,6 +1287,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform4i (GLint location, GLint v0, GL
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform4iv (GLint location, GLsizei count, const GLint *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform4iv);
     END_GLES2_FUNCTION;
@@ -1072,6 +1296,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform4iv (GLint location, GLsizei cou
 
 extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix2fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniformMatrix2fv);
     END_GLES2_FUNCTION;
@@ -1079,6 +1305,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix2fv (GLint location, GLsiz
 
 extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix3fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniformMatrix3fv);
     END_GLES2_FUNCTION;
@@ -1086,6 +1314,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix3fv (GLint location, GLsiz
 
 extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniformMatrix4fv);
     END_GLES2_FUNCTION;
@@ -1093,6 +1323,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix4fv (GLint location, GLsiz
 
 extern "C" GL_APICALL void GL_APIENTRY glUseProgram (GLuint program)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUseProgram);
     END_GLES2_FUNCTION;
@@ -1100,6 +1332,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUseProgram (GLuint program)
 
 extern "C" GL_APICALL void GL_APIENTRY glValidateProgram (GLuint program)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glValidateProgram);
     END_GLES2_FUNCTION;
@@ -1107,6 +1341,8 @@ extern "C" GL_APICALL void GL_APIENTRY glValidateProgram (GLuint program)
 
 extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib1f (GLuint index, GLfloat x)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glVertexAttrib1f);
     END_GLES2_FUNCTION;
@@ -1114,6 +1350,8 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib1f (GLuint index, GLfloat x
 
 extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib1fv (GLuint index, const GLfloat *v)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glVertexAttrib1fv);
     END_GLES2_FUNCTION;
@@ -1121,6 +1359,8 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib1fv (GLuint index, const GL
 
 extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib2f (GLuint index, GLfloat x, GLfloat y)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glVertexAttrib2f);
     END_GLES2_FUNCTION;
@@ -1128,6 +1368,8 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib2f (GLuint index, GLfloat x
 
 extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib2fv (GLuint index, const GLfloat *v)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glVertexAttrib2fv);
     END_GLES2_FUNCTION;
@@ -1135,6 +1377,8 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib2fv (GLuint index, const GL
 
 extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib3f (GLuint index, GLfloat x, GLfloat y, GLfloat z)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glVertexAttrib3f);
     END_GLES2_FUNCTION;
@@ -1142,6 +1386,8 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib3f (GLuint index, GLfloat x
 
 extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib3fv (GLuint index, const GLfloat *v)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glVertexAttrib3fv);
     END_GLES2_FUNCTION;
@@ -1149,6 +1395,8 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib3fv (GLuint index, const GL
 
 extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib4f (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glVertexAttrib4f);
     END_GLES2_FUNCTION;
@@ -1156,6 +1404,8 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib4f (GLuint index, GLfloat x
 
 extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib4fv (GLuint index, const GLfloat *v)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glVertexAttrib4fv);
     END_GLES2_FUNCTION;
@@ -1163,6 +1413,8 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttrib4fv (GLuint index, const GL
 
 extern "C" GL_APICALL void GL_APIENTRY glVertexAttribPointer (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glVertexAttribPointer);
     END_GLES2_FUNCTION;
@@ -1170,6 +1422,8 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttribPointer (GLuint index, GLin
 
 extern "C" GL_APICALL void GL_APIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
 {
+    logd("%s", __PRETTY_FUNCTION__);
+
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glViewport);
     END_GLES2_FUNCTION;

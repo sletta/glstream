@@ -23,6 +23,8 @@ struct {
 
 struct {
     GLuint program;
+    GLuint vertexBuffer;
+    GLuint indexBuffer;
 } gl;
 
 bool init_egl()
@@ -126,6 +128,21 @@ bool init_gl()
 
     printf(" - program: %d\n", gl.program);
 
+    glGenBuffers(1, &gl.vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gl.vertexBuffer);
+    GLfloat vertices[] = {  -1.0f,  1.0f,      0.0f, 0.0f,
+                           1.0f,  1.0f,      1.0f, 0.0f,
+                          -1.0f, -1.0f,      0.0f, 1.0f,
+                           1.0f, -1.0f,      1.0f, 1.0f };
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &gl.indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl.indexBuffer);
+    GLushort indices[] { 0, 1, 2, 4 };
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
     return gl.program != 0;
 }
 
@@ -147,8 +164,21 @@ int main(int argc, char **argv)
         int c = ++frame % 2;
 
         logd(" -- start frame");
-        glClearColor(c, 0, 1-c, 1);
+        glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+
+        glBindBuffer(GL_ARRAY_BUFFER, gl.vertexBuffer);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 4, 0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 4, (void *) (sizeof(GLfloat) * 2));
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl.indexBuffer);
+        glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
+
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
 
         logd(" -- swapping");
         ok = eglSwapBuffers(egl.display, egl.surface);

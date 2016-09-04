@@ -10,6 +10,8 @@
 
 #include <cstring>
 
+#include <alloca.h>
+
 Replayer::Replayer()
 {
 }
@@ -44,7 +46,12 @@ void Replayer::process(const CommandBuffer &cmd)
             } break;
 
             case CommandBuffer::CMD_glBindBuffer: {
-                logd("glBindBuffer");
+                GLenum type = cmd.pop<GLenum>();
+                GLuint id = cmd.pop<GLuint>();
+                logd("glBindBuffer(%x, %d)", type, id);
+
+                glBindBuffer(type, id);
+
             } break;
 
             case CommandBuffer::CMD_glBindFramebuffer: {
@@ -80,7 +87,13 @@ void Replayer::process(const CommandBuffer &cmd)
             } break;
 
             case CommandBuffer::CMD_glBufferData: {
-                logd("glBufferData");
+                GLenum type = cmd.pop<GLenum>();
+                char *data;
+                GLsizei size = cmd.popArray(&data);
+                GLenum usage = cmd.pop<GLenum>();
+                logd("glBufferData(%x, %d, .., %x)", type, size, usage);
+
+                glBufferData(type, size, data, usage);
             } break;
 
             case CommandBuffer::CMD_glBufferSubData: {
@@ -202,11 +215,15 @@ void Replayer::process(const CommandBuffer &cmd)
             } break;
 
             case CommandBuffer::CMD_glDisable: {
-                logd("glDisable");
+                GLenum cap = cmd.pop<GLenum>();
+                logd("glDisable(%x)", cap);
+                glDisable(cap);
             } break;
 
             case CommandBuffer::CMD_glDisableVertexAttribArray: {
-                logd("glDisableVertexAttribArray");
+                GLuint id = cmd.pop<GLuint>();
+                logd("glDisableVertexAttribArray(%d)", id);
+                glDisableVertexAttribArray(id);
             } break;
 
             case CommandBuffer::CMD_glDrawArrays: {
@@ -218,19 +235,25 @@ void Replayer::process(const CommandBuffer &cmd)
             } break;
 
             case CommandBuffer::CMD_glEnable: {
-                logd("glEnable");
+                GLenum cap = cmd.pop<GLenum>();
+                logd("glEnable(%x)", cap);
+                glEnable(cap);
             } break;
 
             case CommandBuffer::CMD_glEnableVertexAttribArray: {
-                logd("glEnableVertexAttribArray");
+                GLuint id = cmd.pop<GLuint>();
+                logd("glEnableVertexAttribArray(%d)", id);
+                glEnableVertexAttribArray(id);
             } break;
 
             case CommandBuffer::CMD_glFinish: {
                 logd("glFinish");
+                glFinish();
             } break;
 
             case CommandBuffer::CMD_glFlush: {
                 logd("glFlush");
+                glFlush();
             } break;
 
             case CommandBuffer::CMD_glFramebufferRenderbuffer: {
@@ -246,7 +269,18 @@ void Replayer::process(const CommandBuffer &cmd)
             } break;
 
             case CommandBuffer::CMD_glGenBuffers: {
-                logd("glGenBuffers");
+                GLsizei count = cmd.pop<GLsizei>();
+                logd("glGenBuffers(%d)", count);
+
+                GLuint *buffers = (GLuint *) alloca(count * sizeof(GLuint));
+                glGenBuffers(count, buffers);
+
+#ifdef GLSTREAM_LOGGING
+                for (int i=0; i<count; ++i)
+                    logd(" -> %d", buffers[i]);
+#endif
+
+                sendReply(CommandBuffer::CMD_Reply_glGenBuffers, buffers, count);
             } break;
 
             case CommandBuffer::CMD_glGenerateMipmap: {
@@ -326,13 +360,17 @@ void Replayer::process(const CommandBuffer &cmd)
             case CommandBuffer::CMD_glGetProgramInfoLog: {
                 GLuint id = cmd.pop<GLuint>();
                 GLsizei size = cmd.pop<GLsizei>();
-                GLchar *str = (GLchar *) malloc(size);
-                GLsizei actualSize;
-                glGetProgramInfoLog(id, size, &actualSize, str);
-                logd("glGetProgramInfoLog(%d, %d, %d, ..):\n%s", id, size, actualSize, str);
+                logd("glGetProgramInfoLog(%d, %d):", id, size);
+
+                GLchar *str = size == 0 ? nullptr : (GLchar *) alloca(size);
+                GLsizei actualSize = 0;
+                if (str) {
+                    glGetProgramInfoLog(id, size, &actualSize, str);
+                    logd(" -> %s", str);
+                }
 
                 sendReply(CommandBuffer::CMD_Reply_glGetProgramInfoLog, str, actualSize);
-                free(str);
+
             } break;
 
             case CommandBuffer::CMD_glGetRenderbufferParameteriv: {
@@ -353,13 +391,17 @@ void Replayer::process(const CommandBuffer &cmd)
             case CommandBuffer::CMD_glGetShaderInfoLog: {
                 GLuint id = cmd.pop<GLuint>();
                 GLsizei size = cmd.pop<GLsizei>();
-                GLchar *str = (GLchar *) malloc(size);
+                logd("glGetShaderInfoLog(%d, %d)", id, size);
+
+                GLchar *str = size == 0 ? nullptr : (GLchar *) alloca(size);
                 GLsizei actualSize;
-                glGetShaderInfoLog(id, size, &actualSize, str);
-                logd("glGetShaderInfoLog(%d, %d, %d, ..):\n%s", id, size, actualSize, str);
+                if (str) {
+                    glGetShaderInfoLog(id, size, &actualSize, str);
+                    logd(" -> %s", str);
+                }
 
                 sendReply(CommandBuffer::CMD_Reply_glGetShaderInfoLog, str, actualSize);
-                free(str);
+
             } break;
 
             case CommandBuffer::CMD_glGetShaderPrecisionFormat: {
@@ -491,7 +533,7 @@ void Replayer::process(const CommandBuffer &cmd)
                     int l = cmd.pop<GLint>();
                     lengths.push_back(l);
                     strings.push_back((const GLchar *) cmd.rawAtPosition());
-                    logd("\n%s", strings.back());
+                    logd("%s\n", strings.back());
                     cmd.advance(l);
                 }
 

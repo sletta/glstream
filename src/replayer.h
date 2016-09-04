@@ -44,7 +44,7 @@ public:
 
 protected:
     template <typename T> void sendReply(CommandBuffer::Command cmd, T value);
-    void sendReply(CommandBuffer::Command cmd, const char *string, int length);
+    template <typename T> void sendReply(CommandBuffer::Command cmd, const T *array, int length);
 
     CommandBuffer m_reply;
 };
@@ -57,11 +57,10 @@ template <typename T> void Replayer::sendReply(CommandBuffer::Command cmd, T val
     m_reply.reset();
 }
 
-inline void Replayer::sendReply(CommandBuffer::Command cmd, const char *string, int length)
+template <typename T> void Replayer::sendReply(CommandBuffer::Command cmd, const T *array, int length)
 {
     m_reply.push(cmd);
-    m_reply.push(string, length);
+    m_reply.push(array, length);
     reply(m_reply);
     m_reply.reset();
 }
-
