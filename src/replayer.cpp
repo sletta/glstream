@@ -12,6 +12,8 @@
 
 #include <alloca.h>
 
+#define CMDPOP(Type, Name) Type Name = cmd.pop<Type>()
+
 Replayer::Replayer()
 {
 }
@@ -92,6 +94,14 @@ void Replayer::process(const CommandBuffer &cmd)
                 GLsizei size = cmd.popArray(&data);
                 GLenum usage = cmd.pop<GLenum>();
                 logd("glBufferData(%x, %d, .., %x)", type, size, usage);
+
+                if (type == GL_ELEMENT_ARRAY_BUFFER)
+                    for (int i=0; i<4; ++i)
+                        printf(" - [%d]: %d\n", i, ((GLushort *) data)[i]);
+                else
+                    for (int i=0; i<8; ++i)
+                        printf(" - [%d]: %f\n", i, ((GLfloat *) data)[i]);
+
 
                 glBufferData(type, size, data, usage);
             } break;
@@ -228,6 +238,19 @@ void Replayer::process(const CommandBuffer &cmd)
 
             case CommandBuffer::CMD_glDrawArrays: {
                 logd("glDrawArrays");
+            } break;
+
+            case CommandBuffer::CMD_glDrawElements_IBO: {
+
+                CMDPOP(GLenum, mode);
+                CMDPOP(GLsizei, count);
+                CMDPOP(GLenum, type);
+                CMDPOP(uint64_t, indices);
+
+                logd("glDrawElements(%x, %d, %x, %p) (IBO)", mode, count, type, (void *) indices);
+
+                glDrawElements(mode, count, type, (void *) indices);
+
             } break;
 
             case CommandBuffer::CMD_glDrawElements: {
@@ -665,7 +688,9 @@ void Replayer::process(const CommandBuffer &cmd)
             } break;
 
             case CommandBuffer::CMD_glUseProgram: {
-                logd("glUseProgram");
+                CMDPOP(GLuint, program);
+                logd("glUseProgram(%d)", program);
+                glUseProgram(program);
             } break;
 
             case CommandBuffer::CMD_glValidateProgram: {
@@ -704,8 +729,16 @@ void Replayer::process(const CommandBuffer &cmd)
                 logd("glVertexAttrib4fv");
             } break;
 
-            case CommandBuffer::CMD_glVertexAttribPointer: {
-                logd("glVertexAttribPointer");
+            case CommandBuffer::CMD_glVertexAttribPointer_VBO: {
+                CMDPOP(GLuint, index);
+                CMDPOP(GLint, size);
+                CMDPOP(GLenum, type);
+                CMDPOP(GLboolean, normalized);
+                CMDPOP(GLsizei, stride);
+                CMDPOP(uint64_t, pointer);
+                logd("glVertexAttribPointer(%d, %d, %x, %d, %d, %p) (VBO)", index, size, type, normalized, stride, (void *) pointer);
+
+                glVertexAttribPointer(index, size, type, normalized, stride, (void *) pointer);
             } break;
 
             case CommandBuffer::CMD_glViewport: {

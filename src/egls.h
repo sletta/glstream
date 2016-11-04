@@ -35,15 +35,31 @@
 class Transport;
 class EGLSDisplayImpl;
 
+
 struct EGLSContextImpl
 {
+    struct AttributePointer {
+        bool enabled         = false;
+        GLint size           = 0;
+        GLenum type          = 0;
+        GLboolean normalized = false;
+        GLsizei stride       = 0;
+        const void *pointer  = nullptr;
+    };
+
     void flush();
 
     template <typename T> void syncServerReply(CommandBuffer::Command replyCommand, T *value);
+    template <typename T> void syncServerReply(CommandBuffer::Command replyCommand, GLsizei expectedSize, T *data);
     void syncServerReply(CommandBuffer::Command replyCommand, GLsizei bufSize, GLsizei *length, GLchar *string);
 
     EGLConfig config = 0;
     EGLSDisplayImpl *display = 0;
+
+    GLuint arrayBuffer = 0;
+    GLuint elementArrayBuffer = 0;
+
+    std::vector<AttributePointer> attribPointers;
 
     CommandBuffer cmds;
 };
@@ -101,6 +117,18 @@ inline void EGLSContextImpl::syncServerReply(CommandBuffer::Command replyCommand
     assert(reply == replyCommand);
     *length = std::min(cmds.pop<GLsizei>(), maxSize);
     memcpy(string, cmds.rawAtPosition(), *length);
+    cmds.reset();
+}
+
+template <typename T>
+inline void EGLSContextImpl::syncServerReply(CommandBuffer::Command replyCommand, GLsizei expectedSize, T *data)
+{
+    flush();
+    CommandBuffer::Command reply = cmds.popCommand();
+    assert(reply == replyCommand);
+    GLsizei size = cmds.pop<GLsizei>();
+    assert(size == expectedSize);
+    memcpy(data, cmds.rawAtPosition(), expectedSize * sizeof(T));
     cmds.reset();
 }
 

@@ -81,7 +81,9 @@ public:
         CMD_glDetachShader,
         CMD_glDisable,
         CMD_glDisableVertexAttribArray,
+        CMD_glDrawArrays_VBO,
         CMD_glDrawArrays,
+        CMD_glDrawElements_IBO,
         CMD_glDrawElements,
         CMD_glEnable,
         CMD_glEnableVertexAttribArray,
@@ -181,6 +183,7 @@ public:
         CMD_glVertexAttrib3fv,
         CMD_glVertexAttrib4f,
         CMD_glVertexAttrib4fv,
+        CMD_glVertexAttribPointer_VBO,
         CMD_glVertexAttribPointer,
         CMD_glViewport,
 

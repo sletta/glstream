@@ -169,6 +169,7 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
     ABORT_ON_BAD_DISPLAY_WITH(nullptr);
     // ### ignoring attrib_list for now..
     EGLSContextImpl *context = new EGLSContextImpl();
+    context->attribPointers.resize(8); // hardcode to the GL 2.0 spec limit..
     context->config = config;
     context->display = (EGLSDisplayImpl *) dpy;
     return context;
@@ -385,7 +386,6 @@ EGLAPI EGLBoolean EGLAPIENTRY eglWaitNative (EGLint engine)
     std::cerr << __PRETTY_FUNCTION__ << ": not implemented!" << std::endl;
     return false;
 }
-
 
 bool EGLSDisplayImpl::connectToServer()
 {

@@ -84,8 +84,15 @@ extern "C" GL_APICALL void GL_APIENTRY glBindBuffer (GLenum target, GLuint buffe
 {
     logd("glBindBuffer(%x, %d)", target, buffer);
 
-
     BEGIN_GLES2_FUNCTION;
+
+    // Also update the local state because we need that to handle
+    // glVertexAttribPointer and glDrawXxx
+    switch (target) {
+        case GL_ARRAY_BUFFER: context->arrayBuffer = buffer; break;
+        case GL_ELEMENT_ARRAY_BUFFER: context->elementArrayBuffer = buffer; break;
+        default: break;
+    }
 
     cmd.push(CommandBuffer::CMD_glBindBuffer);
     cmd.push(target);
@@ -458,10 +465,18 @@ extern "C" GL_APICALL void GL_APIENTRY glDrawArrays (GLenum mode, GLint first, G
 
 extern "C" GL_APICALL void GL_APIENTRY glDrawElements (GLenum mode, GLsizei count, GLenum type, const void *indices)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glDrawElements(%x, %d, %x, %p)", mode, count, type, indices);
 
     BEGIN_GLES2_FUNCTION;
-    cmd.push(CommandBuffer::CMD_glDrawElements);
+    if (context->elementArrayBuffer > 0) {
+        cmd.push(CommandBuffer::CMD_glDrawElements_IBO);
+        cmd.push(mode);
+        cmd.push(count);
+        cmd.push(type);
+        cmd.push(uint64_t(indices));
+    } else {
+        assert(false);
+    }
     END_GLES2_FUNCTION;
 }
 
@@ -536,10 +551,9 @@ extern "C" GL_APICALL void GL_APIENTRY glGenBuffers (GLsizei n, GLuint *buffers)
 
     cmd.push(CommandBuffer::CMD_glGenBuffers);
     cmd.push(n);
-    // ### it might be more buffers...
+    context->syncServerReply(CommandBuffer::CMD_Reply_glGenBuffers, n, buffers);
 
-    context->syncServerReply(CommandBuffer::CMD_Reply_glGenBuffers, buffers);
-    logd(" -> %d", *buffers);
+    logd(" -> [0]: %d", *buffers);
 
     END_GLES2_FUNCTION;
 }
@@ -1323,10 +1337,13 @@ extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix4fv (GLint location, GLsiz
 
 extern "C" GL_APICALL void GL_APIENTRY glUseProgram (GLuint program)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUseProgram(%d)", program);
 
     BEGIN_GLES2_FUNCTION;
+
     cmd.push(CommandBuffer::CMD_glUseProgram);
+    cmd.push(program);
+
     END_GLES2_FUNCTION;
 }
 
@@ -1416,7 +1433,26 @@ extern "C" GL_APICALL void GL_APIENTRY glVertexAttribPointer (GLuint index, GLin
     logd("%s", __PRETTY_FUNCTION__);
 
     BEGIN_GLES2_FUNCTION;
-    cmd.push(CommandBuffer::CMD_glVertexAttribPointer);
+
+    EGLSContextImpl::AttributePointer &p = context->attribPointers[index];
+    p.size = size;
+    p.type = type;
+    p.normalized = normalized;
+    p.stride = stride;
+    p.pointer = pointer;
+
+    // If we're in an array buffer,
+    if (context->arrayBuffer) {
+        cmd.push(CommandBuffer::CMD_glVertexAttribPointer_VBO);
+        cmd.push(index);
+        cmd.push(size);
+        cmd.push(type);
+        cmd.push(normalized);
+        cmd.push(stride);
+        cmd.push(uint64_t(pointer));
+    }
+
+
     END_GLES2_FUNCTION;
 }
 

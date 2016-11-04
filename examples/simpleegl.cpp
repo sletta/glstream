@@ -128,7 +128,13 @@ bool init_gl()
 
     printf(" - program: %d\n", gl.program);
 
-    glGenBuffers(1, &gl.vertexBuffer);
+    GLuint buffers[2];
+    glGenBuffers(2, buffers);
+    gl.vertexBuffer = buffers[0];
+    gl.indexBuffer = buffers[1];
+
+    printf(" - vertex buffer=%d, index buffer=%d\n", gl.vertexBuffer, gl.indexBuffer);
+
     glBindBuffer(GL_ARRAY_BUFFER, gl.vertexBuffer);
     GLfloat vertices[] = {  -1.0f,  1.0f,      0.0f, 0.0f,
                            1.0f,  1.0f,      1.0f, 0.0f,
@@ -137,9 +143,8 @@ bool init_gl()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glGenBuffers(1, &gl.indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl.indexBuffer);
-    GLushort indices[] { 0, 1, 2, 4 };
+    GLushort indices[] { 0, 1, 2, 3 };
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
@@ -160,12 +165,14 @@ int main(int argc, char **argv)
 
     bool ok;
     int frame = 0;
-    while (frame < 10) {
+    while (frame < 1000) {
         int c = ++frame % 2;
 
         logd(" -- start frame");
-        glClearColor(0, 0, 0, 1);
+        glClearColor(c, 0, 1-c, 1);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glUseProgram(gl.program);
 
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
