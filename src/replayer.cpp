@@ -456,7 +456,11 @@ void Replayer::process(const CommandBuffer &cmd)
             } break;
 
             case CommandBuffer::CMD_glGetUniformLocation: {
-                logd("glGetUniformLocation");
+                CMDPOP(GLuint, program);
+                std::string name = cmd.popStdString();
+                logd("glGetUniformLocation(%d, '%s')", program, name.c_str());
+                GLint location = glGetUniformLocation(program, name.c_str());
+                sendReply(CommandBuffer::CMD_Reply_glGetUniformLocation, location);
             } break;
 
             case CommandBuffer::CMD_glGetVertexAttribfv: {
@@ -612,79 +616,162 @@ void Replayer::process(const CommandBuffer &cmd)
             } break;
 
             case CommandBuffer::CMD_glUniform1f: {
-                logd("glUniform1f");
+                CMDPOP(GLint, location);
+                CMDPOP(GLfloat, v0);
+                logd("glUniform1f(%d, %f)", location, v0);
+                glUniform1f(location, v0);
             } break;
 
             case CommandBuffer::CMD_glUniform1fv: {
-                logd("glUniform1fv");
+                CMDPOP(GLint, location);
+                GLfloat *values;
+                unsigned int size = cmd.popArray(&values);
+                logd("glUniform1fv(%d, %d, %p)", location, size, values);
+                glUniform1fv(location, size, values);
             } break;
 
             case CommandBuffer::CMD_glUniform1i: {
-                logd("glUniform1i");
+                CMDPOP(GLint, location);
+                CMDPOP(GLint, v0);
+                logd("glUniform1i(%d, %d)", location, v0);
+                glUniform1i(location, v0);
             } break;
 
             case CommandBuffer::CMD_glUniform1iv: {
-                logd("glUniform1iv");
+                CMDPOP(GLint, location);
+                GLint *values;
+                unsigned int size = cmd.popArray(&values);
+                logd("glUniform1iv(%d, %d, %p)", location, size, values);
+                glUniform1iv(location, size, values);
             } break;
 
             case CommandBuffer::CMD_glUniform2f: {
-                logd("glUniform2f");
+                CMDPOP(GLint, location);
+                CMDPOP(GLfloat, v0);
+                CMDPOP(GLfloat, v1);
+                logd("glUniform2f(%d, %f, %f)", location, v0, v1);
+                glUniform2f(location, v0, v1);
             } break;
 
             case CommandBuffer::CMD_glUniform2fv: {
-                logd("glUniform2fv");
+                CMDPOP(GLint, location);
+                GLfloat *values;
+                unsigned int size = cmd.popArray(&values);
+                logd("glUniform2fv(%d, %d, %p)", location, size / 2, values);
+                glUniform2fv(location, size / 2, values);
             } break;
 
             case CommandBuffer::CMD_glUniform2i: {
-                logd("glUniform2i");
+                CMDPOP(GLint, location);
+                CMDPOP(GLint, v0);
+                CMDPOP(GLint, v1);
+                logd("glUniform2i(%d, %d, %d)", location, v0, v1);
+                glUniform2i(location, v0, v1);
             } break;
 
             case CommandBuffer::CMD_glUniform2iv: {
-                logd("glUniform2iv");
+                CMDPOP(GLint, location);
+                GLint *values;
+                unsigned int size = cmd.popArray(&values);
+                logd("glUniform2iv(%d, %d, %p)", location, size / 2, values);
+                glUniform2iv(location, size / 2, values);
             } break;
 
             case CommandBuffer::CMD_glUniform3f: {
-                logd("glUniform3f");
+                CMDPOP(GLint, location);
+                CMDPOP(GLfloat, v0);
+                CMDPOP(GLfloat, v1);
+                CMDPOP(GLfloat, v2);
+                logd("glUniform3f(%d, %f, %f, %f)", location, v0, v1, v2);
+                glUniform3f(location, v0, v1, v2);
             } break;
 
             case CommandBuffer::CMD_glUniform3fv: {
-                logd("glUniform3fv");
+                CMDPOP(GLint, location);
+                GLfloat *values;
+                unsigned int size = cmd.popArray(&values);
+                logd("glUniform3fv(%d, %d, %p)", location, size / 3, values);
+                glUniform3fv(location, size / 3, values);
             } break;
 
             case CommandBuffer::CMD_glUniform3i: {
-                logd("glUniform3i");
+                CMDPOP(GLint, location);
+                CMDPOP(GLint, v0);
+                CMDPOP(GLint, v1);
+                CMDPOP(GLint, v2);
+                logd("glUniform3i(%d, %d, %d, %d)", location, v0, v1, v2);
+                glUniform3i(location, v0, v1, v2);
             } break;
 
             case CommandBuffer::CMD_glUniform3iv: {
-                logd("glUniform3iv");
+                CMDPOP(GLint, location);
+                GLint *values;
+                unsigned int size = cmd.popArray(&values);
+                logd("glUniform3iv(%d, %d, %p)", location, size / 3, values);
+                glUniform3iv(location, size / 3, values);
             } break;
 
             case CommandBuffer::CMD_glUniform4f: {
-                logd("glUniform4f");
+                CMDPOP(GLint, location);
+                CMDPOP(GLfloat, v0);
+                CMDPOP(GLfloat, v1);
+                CMDPOP(GLfloat, v2);
+                CMDPOP(GLfloat, v3);
+                logd("glUniform4f(%d, %f, %f, %f, %f)", location, v0, v1, v2, v3);
+                glUniform4f(location, v0, v1, v2, v3);
             } break;
 
             case CommandBuffer::CMD_glUniform4fv: {
-                logd("glUniform4fv");
+                CMDPOP(GLint, location);
+                GLfloat *values;
+                unsigned int size = cmd.popArray(&values);
+                logd("glUniform4fv(%d, %d, %p)", location, size / 4, values);
+                glUniform4fv(location, size / 4, values);
             } break;
 
             case CommandBuffer::CMD_glUniform4i: {
-                logd("glUniform4i");
+                CMDPOP(GLint, location);
+                CMDPOP(GLint, v0);
+                CMDPOP(GLint, v1);
+                CMDPOP(GLint, v2);
+                CMDPOP(GLint, v3);
+                logd("glUniform4i(%d, %d, %d, %d, %d)", location, v0, v1, v2, v3);
+                glUniform4i(location, v0, v1, v2, v3);
             } break;
 
             case CommandBuffer::CMD_glUniform4iv: {
-                logd("glUniform4iv");
+                CMDPOP(GLint, location);
+                GLint *values;
+                unsigned int size = cmd.popArray(&values);
+                logd("glUniform4iv(%d, %d, %p)", location, size / 4, values);
+                glUniform4iv(location, size / 4, values);
             } break;
 
             case CommandBuffer::CMD_glUniformMatrix2fv: {
-                logd("glUniformMatrix2fv");
+                CMDPOP(GLuint, location);
+                GLfloat *values;
+                unsigned int size = cmd.popArray(&values);
+                CMDPOP(GLboolean, transpose);
+                logd("glUniformMatrix2fv(%d, %d, %d, %p)", location, size / 4, transpose, values);
+                glUniformMatrix2fv(location, size / 4, transpose, values);
             } break;
 
             case CommandBuffer::CMD_glUniformMatrix3fv: {
-                logd("glUniformMatrix3fv");
+                CMDPOP(GLuint, location);
+                GLfloat *values;
+                unsigned int size = cmd.popArray(&values);
+                CMDPOP(GLboolean, transpose);
+                logd("glUniformMatrix3fv(%d, %d, %d, %p)", location, size / 9, transpose, values);
+                glUniformMatrix3fv(location, size / 9, transpose, values);
             } break;
 
             case CommandBuffer::CMD_glUniformMatrix4fv: {
-                logd("glUniformMatrix4fv");
+                CMDPOP(GLuint, location);
+                GLfloat *values;
+                unsigned int size = cmd.popArray(&values);
+                CMDPOP(GLboolean, transpose);
+                logd("glUniformMatrix4fv(%d, %d, %d, %p)", location, size / 16, transpose, values);
+                glUniformMatrix4fv(location, size / 16, transpose, values);
             } break;
 
             case CommandBuffer::CMD_glUseProgram: {

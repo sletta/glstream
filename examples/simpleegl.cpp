@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <cmath>
 
 #include <string>
 #include <chrono>
@@ -23,6 +24,7 @@ struct {
 
 struct {
     GLuint program;
+    GLuint uniform;
     GLuint vertexBuffer;
     GLuint indexBuffer;
 } gl;
@@ -127,6 +129,8 @@ bool init_gl()
                                    attributes);
 
     printf(" - program: %d\n", gl.program);
+    gl.uniform = glGetUniformLocation(gl.program, "c");
+    printf(" - uniform: %d\n", gl.uniform);
 
     GLuint buffers[2];
     glGenBuffers(2, buffers);
@@ -137,9 +141,9 @@ bool init_gl()
 
     glBindBuffer(GL_ARRAY_BUFFER, gl.vertexBuffer);
     GLfloat vertices[] = {  -1.0f,  1.0f,      0.0f, 0.0f,
-                           1.0f,  1.0f,      1.0f, 0.0f,
-                          -1.0f, -1.0f,      0.0f, 1.0f,
-                           1.0f, -1.0f,      1.0f, 1.0f };
+                             1.0f,  1.0f,      1.0f, 0.0f,
+                            -1.0f, -1.0f,      0.0f, 1.0f,
+                             1.0f, -1.0f,      1.0f, 1.0f };
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -173,6 +177,9 @@ int main(int argc, char **argv)
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(gl.program);
+
+        float t = frame / 100.0f;
+        glUniform2f(gl.uniform, std::sin(t), std::cos(t));
 
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);

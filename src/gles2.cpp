@@ -836,12 +836,19 @@ extern "C" GL_APICALL void GL_APIENTRY glGetUniformiv (GLuint program, GLint loc
 
 extern "C" GL_APICALL GLint GL_APIENTRY glGetUniformLocation (GLuint program, const GLchar *name)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glGetUniformLocation(%d, '%s')", program, name);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glGetUniformLocation);
+    cmd.push(program);
+    cmd.push(name, strlen(name));
+
+    GLint location;
+    context->syncServerReply(CommandBuffer::CMD_Reply_glGetUniformLocation, &location);
+
     END_GLES2_FUNCTION;
-    return 0;
+
+    return location;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glGetVertexAttribfv (GLuint index, GLenum pname, GLfloat *params)
@@ -1166,10 +1173,12 @@ extern "C" GL_APICALL void GL_APIENTRY glTexSubImage2D (GLenum target, GLint lev
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform1f (GLint location, GLfloat v0)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform1f(%d, %f)", location, v0);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform1f);
+    cmd.push(location);
+    cmd.push(v0);
     END_GLES2_FUNCTION;
 }
 
@@ -1179,159 +1188,211 @@ extern "C" GL_APICALL void GL_APIENTRY glUniform1fv (GLint location, GLsizei cou
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform1fv);
+    cmd.push(location);
+    cmd.push(value, count);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform1i (GLint location, GLint v0)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform1i(%d, %d)", location, v0);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform1i);
+    cmd.push(location);
+    cmd.push(v0);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform1iv (GLint location, GLsizei count, const GLint *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform1iv(%d, %d, %p)", location, count, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform1iv);
+    cmd.push(location);
+    cmd.push(value, count);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform2f (GLint location, GLfloat v0, GLfloat v1)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform2f(%d, %f, %f)", location, v0, v1);
 
     BEGIN_GLES2_FUNCTION;
+
     cmd.push(CommandBuffer::CMD_glUniform2f);
+    cmd.push(location);
+    cmd.push(v0);
+    cmd.push(v1);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform2fv (GLint location, GLsizei count, const GLfloat *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform2fv(%d, %d, %p)", location, count, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform2fv);
+    cmd.push(location);
+    cmd.push(value, count * 2);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform2i (GLint location, GLint v0, GLint v1)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform2i(%d, %d, %d)", location, v0, v1);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform2i);
+    cmd.push(location);
+    cmd.push(v0);
+    cmd.push(v1);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform2iv (GLint location, GLsizei count, const GLint *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform2iv(%d, %d, %p)", location, count, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform2iv);
+    cmd.push(location);
+    cmd.push(value, count * 2);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform3f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform3f(%d, %f, %f, %f)", location, v0, v1, v2);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform3f);
+    cmd.push(location);
+    cmd.push(v0);
+    cmd.push(v1);
+    cmd.push(v2);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform3fv (GLint location, GLsizei count, const GLfloat *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform3fv(%d, %d, %p)", location, count, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform3fv);
+    cmd.push(location);
+    cmd.push(value, count * 3);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform3i (GLint location, GLint v0, GLint v1, GLint v2)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform3i(%d, %d, %d, %d)", location, v0, v1, v2);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform3i);
+    cmd.push(location);
+    cmd.push(v0);
+    cmd.push(v1);
+    cmd.push(v2);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform3iv (GLint location, GLsizei count, const GLint *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform3iv(%d, %d, %p)", location, count, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform3iv);
+    cmd.push(location);
+    cmd.push(value, count * 3);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform4f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform4f(%d, %f, %f, %f, %f)", location, v0, v1, v2, v3);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform4f);
+    cmd.push(location);
+    cmd.push(v0);
+    cmd.push(v1);
+    cmd.push(v2);
+    cmd.push(v3);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform4fv (GLint location, GLsizei count, const GLfloat *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform4fv(%d, %d, %p)", location, count, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform4fv);
+    cmd.push(location);
+    cmd.push(value, count * 4);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform4i (GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform4i(%d, %d, %d, %d, %d)", location, v0, v1, v2, v3);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform4i);
+    cmd.push(location);
+    cmd.push(v0);
+    cmd.push(v1);
+    cmd.push(v2);
+    cmd.push(v3);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniform4iv (GLint location, GLsizei count, const GLint *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniform4iv(%d, %d, %p)", location, count, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniform4iv);
+    cmd.push(location);
+    cmd.push(value, count * 4);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix2fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniformMatrix2fv(%d, %d, %d, %p)", location, count, transpose, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniformMatrix2fv);
+    cmd.push(location);
+    cmd.push(value, count * 4);
+    cmd.push(transpose);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix3fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniformMatrix3fv(%d, %d, %d, %p)", location, count, transpose, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniformMatrix3fv);
+    cmd.push(location);
+    cmd.push(value, count * 9);
+    cmd.push(transpose);
     END_GLES2_FUNCTION;
 }
 
 extern "C" GL_APICALL void GL_APIENTRY glUniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-    logd("%s", __PRETTY_FUNCTION__);
+    logd("glUniformMatrix4fv(%d, %d, %d, %p)", location, count, transpose, value);
 
     BEGIN_GLES2_FUNCTION;
     cmd.push(CommandBuffer::CMD_glUniformMatrix4fv);
+    cmd.push(location);
+    cmd.push(value, count * 16);
+    cmd.push(transpose);
     END_GLES2_FUNCTION;
 }
 
@@ -1340,10 +1401,8 @@ extern "C" GL_APICALL void GL_APIENTRY glUseProgram (GLuint program)
     logd("glUseProgram(%d)", program);
 
     BEGIN_GLES2_FUNCTION;
-
     cmd.push(CommandBuffer::CMD_glUseProgram);
     cmd.push(program);
-
     END_GLES2_FUNCTION;
 }
 
